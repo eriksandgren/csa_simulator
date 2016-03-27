@@ -33,32 +33,33 @@ void Decoder::decode(vector<Node*>* CN,vector<Node*>* VN, unsigned long int time
        // vector<Node*> degree_one_cn;
 		vector<Node*> VNs_to_resolve;
         do {
-            iter = CN->begin();
+           // iter = CN->begin();
             
-            while(iter!=CN->begin()+n_rx-1){
-                if((**iter).degree==1){
-                    VNs_to_resolve.push_back((**iter).getNeighbour(0));
-                }
-                ++iter;
-            }
-            // Finds all degree-1 check nodes in the memory..
-            //for (int i=0; i<n_rx; i++)
-            //{
-            //    if ((*CN)[i]->degree==1)
-             //   {
-                   // degree_one_cn.push_back(CN->at(i));
-		//			VNs_to_resolve.push_back(CN->at(i)->getNeighbour(0));
-          //      }
+           // while(iter!=CN->begin()+n_rx-1){
+           //     if((**iter).degree==1){
+           //         VNs_to_resolve.push_back((**iter).getNeighbour(0));
+           //     }
+           //     ++iter;
            // }
-            // Resolving the degree-1 users found and their corresponding connections
-            for(iter=VNs_to_resolve.begin(); iter!= VNs_to_resolve.end();++iter){
-                (**iter).resolve(*iter, time_step);
-                (**iter).setDecoded();
+            // Finds all degree-1 check nodes in the memory..
+            for (int i=0; i<n_rx; i++)
+            {
+                if ((*CN)[i]->degree==1)
+                {
+					VNs_to_resolve.push_back(CN->at(i)->getNeighbour(0));
+                }
             }
+            // Resolving the degree-1 users found and their corresponding connections
+      //      for(iter=VNs_to_resolve.begin(); iter!= VNs_to_resolve.end();++iter){
+       //         (**iter).resolve(*iter, time_step);
+        //        (**iter).setDecoded();
+         //   }
             
-           // for (int i=0; i< (int)VNs_to_resolve.size(); i++) {
-           //     VNs_to_resolve.at(i)->resolve(VNs_to_resolve.at(i),time_step);
-        //	VNs_to_resolve.at(i)->setDecoded();}
+           for (int i=0; i< (int)VNs_to_resolve.size(); i++)
+           {
+                VNs_to_resolve.at(i)->resolve(VNs_to_resolve.at(i),time_step);
+        	VNs_to_resolve.at(i)->setDecoded();
+           }
             iteration++;
             condition= (VNs_to_resolve.size()!=0 && iteration <max_decoding_iterations);
 			VNs_to_resolve.clear();
