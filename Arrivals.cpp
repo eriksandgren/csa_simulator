@@ -1,7 +1,8 @@
 //
 //  Arrivals.cpp
 //  CSA_Simulator
-//  Used for generating Poisson arrivals..
+//  Implements a Poisson arrival process.
+
 //  Created by Erik Sandgren on 27/12/15.
 //  Copyright © 2015 Erik Sandgren. All rights reserved.
 //
@@ -23,7 +24,6 @@ int Arrivals::sample(){
     double L=exp(-mean);
     do{
         k=k+1;
-        // Generate a random number between 0 and 1
         // return a uniform number in [0,1].
         double u = rand() / (double)RAND_MAX;
         p=p*u;

@@ -36,7 +36,6 @@ private:
     bool decoded;
     int delay;
     unsigned long int timeOfArrival;
-    //int degree;
     std::vector<Node*> neighbours;
 };
 

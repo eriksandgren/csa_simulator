@@ -2,6 +2,7 @@
 //  Node.cpp
 //  CSA_Simulator
 //  A class to represent the nodes in a graph, can be used for both the CN and VN in a bipartite graph.
+
 //  Created by Erik Sandgren on 27/12/15.
 //  Copyright © 2015 Erik Sandgren. All rights reserved.
 //
@@ -25,7 +26,6 @@ Node::Node(unsigned long int toa) {
 Node::~Node(){
     vector<Node*>().swap(neighbours);
 }
-// TODO: Add a break if the number of neighbors would exceed the max amount!
 void Node::addNeighbor(Node* newNeighbor){
     neighbours.push_back(newNeighbor);
     degree++;
@@ -44,9 +44,6 @@ int Node::getDegree()
 void Node::setDecoded()
 {
     decoded=true;
-    if(degree!=0){
-      //  printf("what");
-    }
 }
 
 
@@ -85,15 +82,6 @@ void Node::resolve(Node* adr,unsigned long int time_step)
         neighbours.at(0)->remove_edge(adr);
         neighbours.erase(neighbours.begin());
         degree--;
-    }
-    
-  //  for (int i=0; i<nei_size; i++) {
-   //     degree--;
-    //    neighbours.at(i)->remove_edge(adr);
-     //   neighbours.erase(neighbours.begin()+i);
-   // }
-    if (degree!=0) {
-        printf("degree is: %d \n",degree);
     }
 }
 
@@ -135,7 +123,6 @@ void Node::letGoOffNeighbours(Node* adr)
     for (int i=0; i<(int) neighbours.size(); i++) {
         neighbours[i]->letGoOffEdge(adr);
     }
-    //vector<Node*>().swap(neighbours);
 }
 int Node::getNumNeighbours(){
     return (int)neighbours.size();

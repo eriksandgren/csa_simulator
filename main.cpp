@@ -23,24 +23,38 @@ void evaluate_load(double g, int n, int n_rx,int d[],  double Lambda[],  int q, 
 
 int main () {
     // Define all parameters:
-    int n,n_rx,maximum_delay,num_packets_to_sim,num_PL_to_sim,q, iter_max,how_often_to_decode, g_len, num_threads, g_load;
-    n = 100;
-    n_rx= 5*n;
+    int n,n_rx,maximum_delay,num_packets_to_sim,num_PL_to_sim,q, iter_max,how_often_to_decode, g_len, num_threads, g_index;
+    n = 100; // Frame length 'n'
+    n_rx= 5*n; // Memory length 'n_rx'
     maximum_delay=n_rx+n;  // For a non max-delay constarined simulation, put maximum_delay to larger than n_rx+n
-    num_packets_to_sim =(int)1e6;
-    num_PL_to_sim=num_packets_to_sim/1000;
-
-   // int num_PL_to_sim=num_packets_to_sim/1000;
+    
+    // Which system laod values to evaluate:
+    double g[] = {0.05,0.1,0.2,0.3,0.4,0.5,0.6,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.};
+    g_len = sizeof(g) / sizeof(double);
+    
+    // vector to save packet loss rate results
+    vector<double> PLR(g_len); // All elements are initially 0 this way
+    
+    num_packets_to_sim =(int)1e6;  // How many sent packets to simulate (at most) for each system-load value
+    num_PL_to_sim=num_packets_to_sim/1000; // How many packet losses to simulate (at most) for each system-load value
+    
+    // Defines the VN-degree distribution
     int d[] = {3, 8};
     double Lambda[] ={0.86, 0.14};
     q = sizeof(Lambda) / sizeof(double);
+    
+    // Defines the number of decoding iterations and how often to decode
     iter_max =(int)1e7;
     how_often_to_decode=1;
-    bool boundary_effect=false;
-    bool save_delays=false;
-    bool first_slot_tx=false;
+    
+    bool boundary_effect=false; // Do you want to consider a system with boundary effect?
+    bool save_delays=false;  // Do you want to save the packet-delay pdf?
+    bool first_slot_tx=false; // Do you want to transmit in first slot or use uniform edge distribution?
+    
+    // where to save the output and by which name:
     ofstream output_file;
     string filename = "test" + to_string(n) + "n_rx_" + to_string(n_rx)+"max_delay_" + to_string(maximum_delay) +"_BE_"+ to_string(boundary_effect)+"_firstslottx_" +to_string(first_slot_tx)+ "_.txt";
+    
     cout << "Frame Asynchronous Coded Slotted ALOHA simulation \n";
     cout << "n = "<< n<<"\n";
     cout<< "d= "<< d<<"\n";
@@ -48,35 +62,35 @@ int main () {
     cout<< "Packets to simulate = "<< num_packets_to_sim <<"\n";
     cout<< "Please find the results in " << filename << "\n\n";
     cout<< "**************** Progress *************** " << "\n\n";
-    double g[] = {0.05,0.1,0.2,0.3,0.4,0.5,0.6,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.};
-    g_len = sizeof(g) / sizeof(double);
-	vector<double> PLR(g_len); // All elements are initially 0 this way
+
     
-    num_threads=1; // The number of parallell threads to use
-    thread t[1];
+    num_threads=4; // The number of parallell threads to use ()
+    thread t[4];
+    
     cout<< "Load \t \t    Sent \t\tLost \t \t   PLR \n";
     cout<< "------------------------------------------------------- \n";
-    
+    // Start timer
     clock_t begin = clock();
    
-    g_load=g_len-1;
-    
-    while(g_load>=0)
+    g_index=g_len-1;
+    while(g_index>=0)
     {
-        if(g_load+1<num_threads){
-            num_threads=g_load+1;
+        if(g_index+1<num_threads){
+            num_threads=g_index+1;
         }
         
         for(int i=0; i<num_threads;i++){
-            t[i]=thread( evaluate_load,g[g_load], n, n_rx, d, Lambda, q, iter_max, how_often_to_decode, boundary_effect, first_slot_tx, num_packets_to_sim, num_PL_to_sim, &PLR, g_load, maximum_delay);
-            g_load--;
+            t[i]=thread( evaluate_load,g[g_index], n, n_rx, d, Lambda, q, iter_max, how_often_to_decode, boundary_effect, first_slot_tx, num_packets_to_sim, num_PL_to_sim, &PLR, g_index, maximum_delay);
+            g_index--;
         }
         
         for (int i=0; i<num_threads; i++) {
             t[i].join();
         }
     }
-    // write to file
+    
+    
+ ///////// WRITES TO OUTPUT ////////////////////////
     output_file.open(filename);
     output_file << "Lambda:  ";
     for (int i=0; i < q ; i++) {
@@ -130,6 +144,8 @@ int main () {
 }
 
 
+
+// This function is used to evaluate the performance for the given parameters (loop is usually over g, the system load).
 void evaluate_load(double g, int n, int n_rx,int d[], double Lambda[], int q, int iter_max, int how_often_to_decode, bool boundary_effect, bool first_slot_tx, int num_packets_to_sim, int num_PL_to_sim, vector<double> *PLR,int index,int maximum_delay)
 {
     int samp;
@@ -212,6 +228,5 @@ void evaluate_load(double g, int n, int n_rx,int d[], double Lambda[], int q, in
     cout<<setprecision(3)<<fixed;
     cout<< g << " \t \t "<< setw((int)log10(num_packets_to_sim)+1)<< packets_sent << " \t \t" <<setw((int)log10(num_PL_to_sim)+1) << packets_lost << " \t \t "<< scientific<<PLR->at(index)<<endl;
     cout<<setprecision(normal_prec);
-    //printf("%4.3f \t%10d \t%10d \t %4.2E \n",g,packets_sent,packets_lost,PLR->at(index));
 }
 

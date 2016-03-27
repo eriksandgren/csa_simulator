@@ -25,23 +25,16 @@ Decoder::Decoder(int iter,int steps,int n_in,int n_rx_in,int max_delay_in)
 
 void Decoder::decode(vector<Node*>* CN,vector<Node*>* VN, unsigned long int time_step)
 {
+    
+    // Checks if it is time to decode
     if ((time_step%steps_per_decoding)==0)
     {
         int iteration=0;
         vector<Node*>:: iterator iter;
         bool condition;
-       // vector<Node*> degree_one_cn;
 		vector<Node*> VNs_to_resolve;
         do {
-           // iter = CN->begin();
-            
-           // while(iter!=CN->begin()+n_rx-1){
-           //     if((**iter).degree==1){
-           //         VNs_to_resolve.push_back((**iter).getNeighbour(0));
-           //     }
-           //     ++iter;
-           // }
-            // Finds all degree-1 check nodes in the memory..
+            // Finds all degree-1 CNs in the memory..
             for (int i=0; i<n_rx; i++)
             {
                 if ((*CN)[i]->degree==1)
@@ -49,18 +42,14 @@ void Decoder::decode(vector<Node*>* CN,vector<Node*>* VN, unsigned long int time
 					VNs_to_resolve.push_back(CN->at(i)->getNeighbour(0));
                 }
             }
-            // Resolving the degree-1 users found and their corresponding connections
-      //      for(iter=VNs_to_resolve.begin(); iter!= VNs_to_resolve.end();++iter){
-       //         (**iter).resolve(*iter, time_step);
-        //        (**iter).setDecoded();
-         //   }
-            
+           // Resolves all VNs corresponding to the found degree-1 CNs
            for (int i=0; i< (int)VNs_to_resolve.size(); i++)
            {
                 VNs_to_resolve.at(i)->resolve(VNs_to_resolve.at(i),time_step);
         	VNs_to_resolve.at(i)->setDecoded();
            }
             iteration++;
+            // We continue if there were some degree one CNs in this iteration and if we have not reached the maximum number of iterations yet.
             condition= (VNs_to_resolve.size()!=0 && iteration <max_decoding_iterations);
 			VNs_to_resolve.clear();
         }
@@ -70,9 +59,12 @@ void Decoder::decode(vector<Node*>* CN,vector<Node*>* VN, unsigned long int time
 
 void Decoder::count_packets(vector<Node *> *VN, unsigned long time_step,bool boundary_effect)
 {
-    if (boundary_effect) {
+    if (boundary_effect)
+    {
         count_packets_boundary_effect(VN,time_step);
-    } else {
+    }
+    else
+    {
         count_packets_no_boundary_effect(VN,time_step);
     }
 }

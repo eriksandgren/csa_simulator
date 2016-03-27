@@ -24,6 +24,8 @@ Encoder::Encoder(int n_in,int n_rx_in,int d_in[], double Lambda_in[], int size_i
 	}
 }
 
+// Simply implements a way of randomly picking a repetition rate according to a defined
+// degree distribution.
 int Encoder::get_repetition_rate()
 {
     double tmp;
@@ -40,15 +42,23 @@ int Encoder::get_repetition_rate()
 	}
     return repetition_rate;
 }
+
+
 void Encoder::distribute_repetitions(Node* VN, vector <Node*>*CNs,bool first_slot){
-    if(first_slot){
+    if(first_slot)
+    {
         distribute_repetitions_first_slot(VN, CNs);
     }
-    else{
+    else
+    {
         distribute_repetitions_uniformly(VN, CNs);
     }
     
 }
+
+
+// Chooses a degree and CNs for transmission for a VN replicas are placed uniformly in the 'n'
+// following CNs
 void Encoder::distribute_repetitions_uniformly(Node* VN,vector<Node*>*CNs ){
     int repetition_rate=get_repetition_rate();
     int tmp;
@@ -74,6 +84,8 @@ void Encoder::distribute_repetitions_uniformly(Node* VN,vector<Node*>*CNs ){
         VN->addNeighbor(CN);
     }
 }
+
+// Chooses a degree and CNs for transmission for a VN (a first replica is placed in the next CN)
 void Encoder::distribute_repetitions_first_slot(Node* VN, vector<Node*>*CNs)
 {
     int repetition_rate=get_repetition_rate();
