@@ -9,7 +9,7 @@
 using namespace std;
 Decoder::Decoder(int iter,int steps,int n_in,int n_rx_in,int max_delay_in)
 {
-	delays.resize(max_delay_in);
+	delays.resize(max_delay_in+1);
 
     for (int i=0; i< (int) delays.size(); i++) {
         delays.at(i)=0;

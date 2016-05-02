@@ -10,6 +10,8 @@
 #include <fstream>
 #include <string>   
 #include <vector>
+#include <numeric>
+#include <deque>
 #include <thread>
 #include <iomanip>
 #include "Encoder.hpp"
@@ -17,32 +19,37 @@
 #include "Arrivals.hpp"
 #include "Decoder.hpp"
 using namespace std; // Using standard library namespace.
-
+#define NUM_THREADS 4
 // Declaration of function to evaluate PLR for a certain load, defined further down...
-void evaluate_load(double g, int n, int n_rx,int d[],  double Lambda[],  int q,  int iter_max,  int how_often_to_decode,  bool boundary_effect,  bool first_slot_tx,  int num_packets_to_sim, int num_PL_to_sim, vector<double> &PLR,int index, int maximum_delay, vector<vector<int>> &delays, bool save_delays);
+void evaluate_load(double g, int n, int n_rx,int d[],  double Lambda[],  int q,  int iter_max,  int how_often_to_decode,  bool boundary_effect,  bool first_slot_tx,  int num_packets_to_sim, int num_PL_to_sim, vector<double> &PLR,int index, int maximum_delay, vector<vector<int>> &delays, bool save_delays, bool progression, vector<int> &load_tracker,vector<int> &resolve_tracker);
 
 
 
 int main () {
     // Define all parameters:
-    int n,n_rx,maximum_delay,num_packets_to_sim,num_PL_to_sim,q, iter_max,how_often_to_decode, g_len, num_threads, g_index;
-    n = 100; // Frame length 'n'
-    n_rx= 5*n; // Memory length 'n_rx'
-    maximum_delay=n_rx+n;  // For a non max-delay constarined simulation, put maximum_delay to larger than n_rx+n
+    int n,n_rx,maximum_delay,num_packets_to_sim,num_PL_to_sim,q, iter_max,how_often_to_decode, g_len, g_index;
+    n = 2000; // Frame length 'n'
+    n_rx= 6*n; // Memory length 'n_rx'
+    maximum_delay=n_rx+2*n;  // For a non max-delay constarined simulation, put maximum_delay to larger than n_rx+n
     
-    // Which system laod values to evaluate:
-    double g[] = {0.05,0.1,0.2,0.3,0.4,0.5,0.6,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.};
+    // Which system laod values to evaluate
+    //double g[] = {0.81,0.82,0.83,0.84,0.85,0.86,0.87,0.88,0.89,0.90,0.91,0.92,0.93,0.94,0.95,0.96,0.97,0.98,0.99,1.};
+    //double g[] = {0.89,0.90,0.91,0.92,0.93,0.94,0.95,0.96,0.97,0.98,0.99,1.};
+    //double g[] ={0.78,0.79,0.81,0.82,0.83,0.84,0.86,0.87,0.88,0.89,0.91,0.92,0.93,0.94,0.96,0.97,0.98,0.99};
+    //double g[] ={0.82,0.83};
+    double g[] ={0.83};
+
     g_len = sizeof(g) / sizeof(double);
     
     // vector to save packet loss rate results
     vector<double> PLR(g_len); // All elements are initially 0 this way
     
-    num_packets_to_sim =(int)1e5;  // How many sent packets to simulate (at most) for each system-load value
-    num_PL_to_sim=num_packets_to_sim/1000; // How many packet losses to simulate (at most) for each system-load value
+    num_packets_to_sim =(int)1e6;  // How many sent packets to simulate (at most) for each system-load value
+    num_PL_to_sim=num_packets_to_sim; // How many packet losses to simulate (at most) for each system-load value
     
     // Defines the VN-degree distribution
-    int d[] = {3, 8};
-    double Lambda[] ={0.86, 0.14};
+    int d[] = {3};
+    double Lambda[] ={1};
     q = sizeof(Lambda) / sizeof(double);
     
     // Defines the number of decoding iterations and how often to decode
@@ -52,7 +59,9 @@ int main () {
     bool boundary_effect=false; // Do you want to consider a system with boundary effect?
     bool save_delays=false;  // Do you want to save the packet-delay pdf?
     bool first_slot_tx=true; // Do you want to transmit in first slot or use uniform edge distribution?
-    
+    bool save_progression=true; // Do we want to keep track of the "instantaneous" load vs num. packets decoded...
+    vector<int> load_tracker; // Tracks number of active users over time.
+    vector<int> resolve_tracker; // Tracks the number of active users that are resolved over time?
     vector<vector<int>> delays (0,vector<int>(0,0));
     if(save_delays)
     {
@@ -60,7 +69,7 @@ int main () {
     }
     // where to save the output and by which name:
     ofstream output_file;
-    string filename = "test" + to_string(n) + "n_rx_" + to_string(n_rx)+"max_delay_" + to_string(maximum_delay) +"_BE_"+ to_string(boundary_effect)+"_firstslottx_" +to_string(first_slot_tx)+ "_.txt";
+    string filename = "FA-CSA-3-" + to_string(n) + "n_rx_" + to_string(n_rx)+"max_delay_" + to_string(maximum_delay) +"_BE_"+ to_string(boundary_effect)+"_firstslottx_" +to_string(first_slot_tx)+ "_load_and_resolve_tracking_g_083.txt";
     if (save_delays) {
         
     }
@@ -73,8 +82,7 @@ int main () {
     cout<< "**************** Progress *************** " << "\n\n";
 
     
-    num_threads=4; // The number of parallell threads to use ()
-    thread t[4];
+    //thread t[NUM_THREADS];
     
     cout<< "Load \t \t    Sent \t\tLost \t \t   PLR \n";
     cout<< "------------------------------------------------------- \n";
@@ -87,7 +95,7 @@ int main () {
     while(g_index>=0)
     {
         
-        evaluate_load(g[g_index], n, n_rx, d, Lambda, q, iter_max, how_often_to_decode, boundary_effect, first_slot_tx, num_packets_to_sim, num_PL_to_sim, PLR, g_index, maximum_delay, delays, save_delays);
+        evaluate_load(g[g_index], n, n_rx, d, Lambda, q, iter_max, how_often_to_decode, boundary_effect, first_slot_tx, num_packets_to_sim, num_PL_to_sim, PLR, g_index, maximum_delay, delays, save_delays, save_progression,load_tracker,resolve_tracker);
         
         /*
         if(g_index+1<num_threads){
@@ -167,6 +175,24 @@ int main () {
             output_file <<"\\\\"<<endl;
         }
     }
+    if(save_progression){
+        output_file << endl;
+        output_file << endl;
+        output_file <<"Load tracker (number of active users over time)  size:"<< load_tracker.size() <<endl;
+        for (int i=0; i < load_tracker.size();i++)
+        {
+                output_file<< load_tracker[i]<<" ";
+        }
+        output_file <<"\\\\"<<endl;
+        output_file << endl;
+        output_file << endl;
+        output_file <<"Resolve tracker (number of resolved-active users over time)  size:" << resolve_tracker.size() <<endl;
+        for (int i=0; i < resolve_tracker.size(); i++){
+            output_file<< resolve_tracker[i]<<" ";
+        }
+        output_file <<"\\\\"<<endl;
+    }
+    
     output_file.close();
     clock_t end =clock();
     double elapsed_secs= double(end-begin)/CLOCKS_PER_SEC;
@@ -177,55 +203,72 @@ int main () {
 }
 
 // This function is used to evaluate the performance for the given parameters (loop is usually over g, the system load).
-    void evaluate_load(double g, int n, int n_rx,int d[],  double Lambda[],  int q,  int iter_max,  int how_often_to_decode,  bool boundary_effect,  bool first_slot_tx,  int num_packets_to_sim, int num_PL_to_sim, vector<double> &PLR,int index, int maximum_delay, vector<vector<int>> &delays, bool save_delays)
+    void evaluate_load(double g, int n, int n_rx,int d[],  double Lambda[],  int q,  int iter_max,  int how_often_to_decode,  bool boundary_effect,  bool first_slot_tx,  int num_packets_to_sim, int num_PL_to_sim, vector<double> &PLR,int index, int maximum_delay, vector<vector<int>> &delays, bool save_delays, bool save_progression,vector<int> &load_tracker,vector<int> &resolve_tracker)
     {
-    int samp;
-    unsigned long int time_step=0;
-    Arrivals poiss= Arrivals(g);
-    Encoder enc=Encoder(n, n_rx, d, Lambda,q);
-    Decoder dec=Decoder(iter_max, how_often_to_decode, n, n_rx,maximum_delay);
-    vector<Node*> VN;
-    vector<Node*>CN(n+n_rx);
-    int packets_sent=0;
-    int packets_lost=0;
-    Node* temp_CN;
-    Node* temp_VN;
+        int samp;
+        unsigned long int time_step=0;
+        Arrivals poiss= Arrivals(g);
+        deque<int> active(n_rx+n,0);
+        int num_active=0;
+        int num_resolved=0;
+        Encoder enc=Encoder(n, n_rx, d, Lambda,q);
+        Decoder dec=Decoder(iter_max, how_often_to_decode, n, n_rx,maximum_delay);
+        vector<Node*> VN;
+        vector<Node*>CN(n+n_rx);
+        int packets_sent=0;
+        int packets_lost=0;
+        Node* temp_CN;
+        Node* temp_VN;
     
-    // Initialize CNs
-    for (int i=0; i<n_rx; i++) {
-        temp_CN=new Node();
-        CN[i]=temp_CN;
-    }
-    for (int i=n_rx; i<n_rx+n; i++) {
-        time_step++;
-        temp_CN=new Node(time_step);
-        CN[i]=temp_CN;
-    }
-    
-    time_step=0;
-    
-    // Running some steps without decoding in case the RX is not present at the start
-    if(!boundary_effect){
-        for (int i=0; i<2*n_rx+n; i++) {
-            time_step++;
-            // Create new CN and remove the oldest one.
-            temp_CN=new Node(time_step);
-            CN.push_back(temp_CN);
-            temp_CN=CN[0];
-            
-            CN.erase(CN.begin());
-            temp_CN->letGoOffNeighbours(temp_CN);
-            delete temp_CN;
-            //Create new VN and distribute its packets...
-            samp=poiss.sample();
-            for (int i=0; i<samp; i++) {
-                temp_VN=new Node(time_step);
-                enc.distribute_repetitions(temp_VN, &CN,first_slot_tx);
-                VN.push_back(temp_VN);
+        // Initialize CNs
+        for (int i=0; i<n_rx; i++) {
+            temp_CN=new Node();
+            CN[i]=temp_CN;
             }
+        for (int i=n_rx; i<n_rx+n; i++) {
+            time_step++;
+            temp_CN=new Node(time_step);
+            CN[i]=temp_CN;
+            }
+    
+        time_step=0;
+    
+        // Running some steps without decoding in case the RX is not present at the start
+        if(!boundary_effect){
+            for (int i=0; i<2*n_rx+n; i++) {
+                time_step++;
+                // Create new CN and remove the oldest one.
+                temp_CN=new Node(time_step);
+                CN.push_back(temp_CN);
+                temp_CN=CN[0];
             
+                CN.erase(CN.begin());
+                temp_CN->letGoOffNeighbours(temp_CN);
+                delete temp_CN;
+                //Create new VN and distribute its packets...
+                samp=poiss.sample();
+                active.push_front(samp);
+                num_active-=active[n_rx+n];
+                num_active+=samp;
+                active.pop_back();
+               // load_tracker.push_back(num_active);
+                for (int i=0; i<samp; i++) {
+                    temp_VN=new Node(time_step);
+                    enc.distribute_repetitions(temp_VN, &CN,first_slot_tx);
+                    VN.push_back(temp_VN);
+                }
+                num_resolved=0;
+                int start_idx=0;
+                for(int i=int(VN.size()-1);  i>=0 && (time_step - VN[i]->getTimeOfArrival())<n ;i--){
+                    start_idx=i;
+                }
+                for (int i=start_idx; i>=0 && (time_step - VN[i]->getTimeOfArrival())<2*n; i--)
+                {
+                    num_resolved+= (int) VN[i]->getDecoded();
+                }
+               // resolve_tracker.push_back(num_resolved);
+            }
         }
-    }
     
     while(packets_sent<num_packets_to_sim && packets_lost<num_PL_to_sim)
     {
@@ -246,8 +289,30 @@ int main () {
             enc.distribute_repetitions(temp_VN, &CN,first_slot_tx);
             VN.push_back(temp_VN);
         }
-        dec.decode(&CN, &VN, time_step);
         
+        // Decode
+        dec.decode(&CN, &VN, time_step);
+       
+        active.push_front(samp);
+        num_active-=active[n_rx+n];
+        num_active+=samp;
+        active.pop_back();
+        if(!(time_step % 20)){
+        load_tracker.push_back(num_active);
+        // Keeps track of the number of decoded ACTIVE users
+        /*int start_idx=0;
+        for(int i=int(VN.size()-1);  i>=0 && (time_step - VN[i]->getTimeOfArrival())<n ;i--){
+            start_idx=i;
+        }*/
+    //    for (int i=start_idx; i>=0 && (time_step - VN[i]->getTimeOfArrival())<2*n; i--)
+        num_resolved=0;
+        int start_idx=int(VN.size()-1);
+        for (int i=start_idx; i>=0; i--)
+        {
+            num_resolved+= (int) VN[i]->getDecoded();
+        }
+        resolve_tracker.push_back(num_resolved);
+        }
         // Counting packets: different method depending on the time_initial variable
         dec.count_packets(&VN, time_step, boundary_effect);
         packets_sent=dec.getSentPackets();
@@ -265,3 +330,4 @@ int main () {
     cout<< g << " \t \t "<< setw((int)log10(num_packets_to_sim)+1)<< packets_sent << " \t \t" <<setw((int)log10(num_PL_to_sim)+1) << packets_lost << " \t \t "<< scientific<<PLR.at(index)<<endl;
     cout<<setprecision(normal_prec);
 }
+
