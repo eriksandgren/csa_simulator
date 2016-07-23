@@ -7,6 +7,9 @@
 //
 
 #include "Encoder.hpp"
+#include <ctime>
+#include <cmath>
+#include <cstdlib>
 using namespace std;
 Encoder::Encoder(int n_in,int n_rx_in,int d_in[], double Lambda_in[], int size_in)
 {
@@ -22,6 +25,7 @@ Encoder::Encoder(int n_in,int n_rx_in,int d_in[], double Lambda_in[], int size_i
 		cumsum += Lambda[i];
 		cdf.at(i) = cumsum;
 	}
+    srand ( (unsigned int)time(NULL) );
 }
 
 // Simply implements a way of randomly picking a repetition rate according to a defined
