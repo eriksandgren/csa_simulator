@@ -108,7 +108,6 @@ void Decoder::count_packets_boundary_effect(vector<Node *> *VN, unsigned long ti
     }
 }
 
-
 void Decoder::count_packets_no_boundary_effect(vector<Node *> *VN, unsigned long time_step)
 {
     int i=0;
@@ -153,7 +152,6 @@ void Decoder::count_packets_no_boundary_effect(vector<Node *> *VN, unsigned long
     }
 }
 
-
 int Decoder::getSentPackets()
 {
     return sent_packets;
@@ -168,8 +166,6 @@ vector<int> Decoder::getDelays()
 {
     return delays;
 }
-
-
 
 void Decoder::printFrame(vector<Node*>* CN)
 {

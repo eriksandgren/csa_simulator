@@ -9,19 +9,23 @@
 #include "Node.hpp"
 using namespace std;
 Node::Node() {
-    degree=0;
+    degree = 0;
     vector<Node*> tmp;
-    neighbours=tmp;
-    decoded=false;
+    neighbours = tmp;
+    decoded = false;
+    timeOfArrival = 0;
+    delay = -1;
+
 }
 
 Node::Node(unsigned long int toa) {
-    degree=0;
-    timeOfArrival=toa;
+    degree = 0;
+    timeOfArrival = toa;
     vector<Node*> tmp;
-    neighbours=tmp;
+    neighbours = tmp;
     neighbours.clear();
-    decoded=false;
+    decoded = false;
+    delay = -1;
 }
 Node::~Node(){
     vector<Node*>().swap(neighbours);
