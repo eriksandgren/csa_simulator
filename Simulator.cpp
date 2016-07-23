@@ -21,7 +21,7 @@
 using namespace std; // Using standard library namespace.
 #define NUM_THREADS 4
 // Declaration of function to evaluate PLR for a certain load, defined further down...
-void evaluate_load(double g, int n, int n_rx,int d[],  double Lambda[],  int q,  int iter_max,  int how_often_to_decode,  bool boundary_effect,  bool first_slot_tx,  int num_packets_to_sim, int num_PL_to_sim, vector<double> &PLR,int index, int maximum_delay, vector<vector<int>> &delays, bool save_delays, bool progression, vector<int> &load_tracker,vector<int> &resolve_tracker,vector<int> &singleton_tracker);
+void evaluate_load(double g, int n, int n_rx,int d[],  double Lambda[],  int q,  int iter_max,  int how_often_to_decode,  bool boundary_effect,  bool first_slot_tx,  int num_packets_to_sim, int num_PL_to_sim, vector<double> &PLR,int index, int maximum_delay, vector<vector<int> > &delays, bool save_delays, bool progression, vector<int> &load_tracker,vector<int> &resolve_tracker,vector<int> &singleton_tracker);
 
 
 
@@ -31,12 +31,7 @@ int main () {
     n = 120; // Frame length 'n'
     n_rx= 6*n; // Memory length 'n_rx'
     maximum_delay=n_rx+2*n;  // For a non max-delay constarined simulation, put maximum_delay to larger than n_rx+n
-    
-    // Which system laod values to evaluate
-    //double g[] = {0.81,0.82,0.83,0.84,0.85,0.86,0.87,0.88,0.89,0.90,0.91,0.92,0.93,0.94,0.95,0.96,0.97,0.98,0.99,1.};
-    //double g[] = {0.89,0.90,0.91,0.92,0.93,0.94,0.95,0.96,0.97,0.98,0.99,1.};
-    //double g[] ={0.78,0.79,0.81,0.82,0.83,0.84,0.86,0.87,0.88,0.89,0.91,0.92,0.93,0.94,0.96,0.97,0.98,0.99};
-    //double g[] ={0.82,0.83};
+
     double g[] ={0.65};
 
     g_len = sizeof(g) / sizeof(double);
@@ -44,7 +39,7 @@ int main () {
     // vector to save packet loss rate results
     vector<double> PLR(g_len); // All elements are initially 0 this way
     
-    num_packets_to_sim =(int)1e7;  // How many sent packets to simulate (at most) for each system-load value
+    num_packets_to_sim =(int)1e6;  // How many sent packets to simulate (at most) for each system-load value
     num_PL_to_sim=num_packets_to_sim/100; // How many packet losses to simulate (at most) for each system-load value
     
     // Defines the VN-degree distribution
@@ -63,7 +58,7 @@ int main () {
     vector<int> singleton_tracker;
     vector<int> load_tracker; // Tracks number of active users over time.
     vector<int> resolve_tracker; // Tracks the number of active users that are resolved over time?
-    vector<vector<int>> delays (0,vector<int>(0,0));
+    vector<vector<int> > delays (0,vector<int>(0,0));
     if(save_delays)
     {
         delays.resize(g_len,vector<int>(maximum_delay,0));
@@ -213,7 +208,7 @@ int main () {
 }
 
 // This function is used to evaluate the performance for the given parameters (loop is usually over g, the system load).
-    void evaluate_load(double g, int n, int n_rx,int d[],  double Lambda[],  int q,  int iter_max,  int how_often_to_decode,  bool boundary_effect,  bool first_slot_tx,  int num_packets_to_sim, int num_PL_to_sim, vector<double> &PLR,int index, int maximum_delay, vector<vector<int>> &delays, bool save_delays, bool save_progression,vector<int> &load_tracker,vector<int> &resolve_tracker, vector<int> &singleton_tracker)
+    void evaluate_load(double g, int n, int n_rx,int d[],  double Lambda[],  int q,  int iter_max,  int how_often_to_decode,  bool boundary_effect,  bool first_slot_tx,  int num_packets_to_sim, int num_PL_to_sim, vector<double> &PLR,int index, int maximum_delay, vector<vector<int> > &delays, bool save_delays, bool save_progression,vector<int> &load_tracker,vector<int> &resolve_tracker, vector<int> &singleton_tracker)
     {
         int samp;
         unsigned long int time_step=0;

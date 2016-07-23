@@ -26,3 +26,12 @@
 *.exe
 *.out
 *.app
+
+# Text files
+*.txt
+
+# Project files
+.cproject
+.project
+.settings/
+Simulator
