@@ -23,13 +23,12 @@ Decoder::Decoder(int iter,int steps,int n_in,int n_rx_in,int max_delay_in)
     sent_packets=0;
 }
 
-void Decoder::decode(vector<Node*>* CN,vector<Node*>* VN, unsigned long int time_step, int &num_singleton)
+void Decoder::decode(vector<Node*>* CN,vector<Node*>* VN, unsigned long int time_step)
 {
     
     // Checks if it is time to decode
     if ((time_step%steps_per_decoding)==0)
     {
-        int count_singletons=0;
         int iteration=0;
         vector<Node*>:: iterator iter;
         bool condition;
@@ -40,7 +39,6 @@ void Decoder::decode(vector<Node*>* CN,vector<Node*>* VN, unsigned long int time
             {
                 if ((*CN)[i]->degree==1)
                 {
-                    count_singletons++;
 					VNs_to_resolve.push_back(CN->at(i)->getNeighbour(0));
                 }
             }
@@ -56,7 +54,6 @@ void Decoder::decode(vector<Node*>* CN,vector<Node*>* VN, unsigned long int time
 			VNs_to_resolve.clear();
         }
         while (condition);
-        num_singleton=count_singletons;
     }
 }
 

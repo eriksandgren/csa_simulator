@@ -25,7 +25,7 @@ private:
     int steps_per_decoding;
 public:
     Decoder(int iter,int steps,int n_in, int n_rx_in,int max_delay_in);
-    void decode(std::vector<Node*> *CN,std::vector<Node*> *VN, unsigned long int time_step, int &num_singleton);
+    void decode(std::vector<Node*> *CN,std::vector<Node*> *VN, unsigned long int time_step);
     void count_packets(std::vector<Node*> *VN, unsigned long int time_step,bool boundary_effect);
     void count_packets_boundary_effect(std::vector<Node *> *VN, unsigned long time_step);
     void count_packets_no_boundary_effect(std::vector<Node *> *VN, unsigned long time_step);
