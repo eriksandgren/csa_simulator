@@ -20,18 +20,18 @@
 using namespace std;
 
 // Declaration of function to evaluate PLR for a certain load, defined further down...
-void evaluate_load(double g, int n, int n_rx,int d[],  double Lambda[],  int q,  int iter_max,  int how_often_to_decode,  bool boundary_effect,  bool first_slot_tx,  int num_packets_to_sim, int num_PL_to_sim, vector<double> &PLR,int index, int maximum_delay, vector<vector<int> > &delays, bool save_delays);
-void write_to_output_file();
+void evaluate_load_FA(int index);
+void evaluate_load_FS(int index);
+void evaluate_load_SC(int index);
 
+void write_to_output_file();
 
 int main () {
 	clock_t begin =clock();
-
 	if(save_delays)
 	{
 		delays.resize(g_len,vector<int>(maximum_delay,0));
 	}
-
 	cout << "Frame Asynchronous Coded Slotted ALOHA simulation \n";
 	cout << "n = "<< n<<"\n";
 	cout<< "d= "<< d<<"\n";
@@ -39,34 +39,43 @@ int main () {
 	cout<< "Packets to simulate = "<< num_packets_to_sim <<"\n";
 	cout<< "Please find the results in " << filename << "\n\n";
 	cout<< "**************** Progress *************** " << "\n\n";
-
-
 	cout<< "Load \t \t    Sent \t\tLost \t \t   PLR \n";
 	cout<< "------------------------------------------------------- \n";
-
 	g_index=g_len-1;
+
 	while(g_index>=0)
 	{
-		evaluate_load(g[g_index], n, n_rx, d, Lambda, q, iter_max, how_often_to_decode, boundary_effect, first_slot_tx, num_packets_to_sim, num_PL_to_sim, PLR, g_index, maximum_delay, delays, save_delays);
+		switch(typeOfSimulation)
+		{
+		case FA_FNB:
+		case FA_FB:
+		case FA_UB:
+		case FA_UNB:
+			evaluate_load_FA(g_index);
+			break;
+		case FS:
+			evaluate_load_FS(g_index);
+			break;
+		case SC:
+			evaluate_load_SC(g_index);
+			break;
+		}
 		g_index--;
 	}
 
 	write_to_output_file();
-
 	clock_t end =clock();
 	double elapsed_secs= double(end-begin)/CLOCKS_PER_SEC;
-
 	cout<< "Elapsed time is: "<< elapsed_secs<<" seconds "<<endl;
-
 	return 0;
 }
 
 // This function is used to evaluate the performance for the given parameters (loop is usually over g, the system load).
-void evaluate_load(double g, int n, int n_rx,int d[],  double Lambda[],  int q,  int iter_max,  int how_often_to_decode,  bool boundary_effect,  bool first_slot_tx,  int num_packets_to_sim, int num_PL_to_sim, vector<double> &PLR,int index, int maximum_delay, vector<vector<int> > &delays, bool save_delays)
+void evaluate_load_FA(int index)
 {
 	int samp;
 	unsigned long int time_step=0;
-	Arrivals poiss= Arrivals(g);
+	Arrivals poiss= Arrivals(g[index]);
 	Encoder enc=Encoder(n, n_rx, d, Lambda,q);
 	Decoder dec=Decoder(iter_max, how_often_to_decode, n, n_rx,maximum_delay);
 	vector<Node*> VN;
@@ -90,7 +99,7 @@ void evaluate_load(double g, int n, int n_rx,int d[],  double Lambda[],  int q, 
 	time_step=0;
 
 	// Running some steps without decoding in case the RX is not present at the start
-	if(!boundary_effect){
+	if(typeOfSimulation == FA_FNB || typeOfSimulation == FA_UNB){
 		for (int i=0; i<2*n_rx+n; i++) {
 			time_step++;
 			// Create new CN and remove the oldest one.
@@ -103,9 +112,18 @@ void evaluate_load(double g, int n, int n_rx,int d[],  double Lambda[],  int q, 
 			delete temp_CN;
 			//Create new VN and distribute its packets...
 			samp=poiss.sample();
-			for (int i=0; i<samp; i++) {
+			for (int i=0; i<samp; i++)
+			{
 				temp_VN=new Node(time_step);
-				enc.distribute_repetitions(temp_VN, &CN,first_slot_tx);
+				if(typeOfSimulation == FA_FNB || typeOfSimulation == FA_FB)
+				{
+					enc.distribute_repetitions_first_slot(temp_VN, &CN);
+				}
+				else
+
+				{
+					enc.distribute_repetitions_uniformly(temp_VN, &CN);
+				}
 				VN.push_back(temp_VN);
 			}
 
@@ -125,18 +143,37 @@ void evaluate_load(double g, int n, int n_rx,int d[],  double Lambda[],  int q, 
 
 		//Create new VN and distribute its packets...
 		samp=poiss.sample();
+
 		for (int i=0; i<samp; i++)
 		{
 			temp_VN=new Node(time_step);
-			enc.distribute_repetitions(temp_VN, &CN,first_slot_tx);
+			if(typeOfSimulation == FA_FNB || typeOfSimulation == FA_FB)
+			{
+				enc.distribute_repetitions_first_slot(temp_VN, &CN);
+			}
+			else
+
+			{
+				enc.distribute_repetitions_uniformly(temp_VN, &CN);
+			}
 			VN.push_back(temp_VN);
 		}
+
 		dec.decode(&CN, &VN, time_step);
 
-		// Counting packets: different method depending on the time_initial variable
-		dec.count_packets(&VN, time_step, boundary_effect);
+		// Counting packets
+		if(typeOfSimulation == FA_FB || typeOfSimulation == FA_UB )
+		{
+			dec.count_packets_boundary_effect(&VN, time_step);
+		}
+		else
+		{
+			dec.count_packets_no_boundary_effect(&VN, time_step);
+		}
+
 		packets_sent=dec.getSentPackets();
 		packets_lost=dec.getLostPackets();
+
 	}
 	VN.clear();
 	CN.clear();
@@ -144,13 +181,15 @@ void evaluate_load(double g, int n, int n_rx,int d[],  double Lambda[],  int q, 
 	{
 		delays.at(index) = dec.getDelays();
 	}
-	PLR.at(index)=(double)packets_lost / (double)packets_sent;
+	PLR.at(index) = (double)packets_lost / (double)packets_sent;
 	streamsize normal_prec=cout.precision();
-	cout<<setprecision(3)<<fixed;
-	cout<< g << " \t \t "<< setw((int)log10(num_packets_to_sim)+1)<< packets_sent << " \t \t" <<setw((int)log10(num_PL_to_sim)+1) << packets_lost << " \t \t "<< scientific<<PLR.at(index)<<endl;
-	cout<<setprecision(normal_prec);
+	cout << setprecision(3) << fixed;
+	cout<< g[index] << " \t \t " << setw((int) log10(num_packets_to_sim) + 1) << packets_sent << " \t \t" << setw((int)log10(num_PL_to_sim)+1) << packets_lost << " \t \t "<< scientific << PLR.at(index) << endl;
+	cout << setprecision(normal_prec);
 
 }
+void evaluate_load_FS(int index){};
+void evaluate_load_SC(int index){};
 
 void write_to_output_file(){
 	///////// WRITES TO OUTPUT ////////////////////////
@@ -176,22 +215,27 @@ void write_to_output_file(){
 
 	output_file<< "maximum delay:  "<< maximum_delay<< endl;
 
-	output_file<< "Transmit in first slot:  ";
-	if (first_slot_tx) {
-		output_file<< "Yes"<< endl;
+	output_file << "Type of simulation: ";
+	switch(typeOfSimulation){
+	case FA_FNB:
+		output_file << "FA_FNB" << endl;
+		break;
+	case FA_FB:
+		output_file << "FA_FB" << endl;
+		break;
+	case FA_UNB:
+		output_file << "FA_UNB" << endl;
+		break;
+	case FA_UB:
+		output_file << "FA_UB" << endl;
+		break;
+	case FS:
+		output_file << "FS" << endl;
+		break;
+	case SC:
+		output_file << "SC" << endl;
+		break;
 	}
-	else{
-		output_file<<"No"<< endl;
-	}
-
-	output_file<< "Boundary Effect: ";
-	if (boundary_effect) {
-		output_file<< "Yes"<< endl;
-	}
-	else{
-		output_file<<"No"<< endl;
-	}
-
 	output_file<< "Max number of packets to simulate:  "<< num_packets_to_sim<< endl;
 	output_file<< "Max number of losses to simulate:  "<<num_PL_to_sim<< endl;
 
