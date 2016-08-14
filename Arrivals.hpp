@@ -9,15 +9,11 @@
 #ifndef GUARD_Arrivals_hpp
 #define GUARD_Arrivals_hpp
 
-#include <stdio.h>
-#include <cmath>
-#include <cstdlib>
-
 class Arrivals {
     private:
-        double mean;
+        double mean_;
     public:
-        Arrivals(double new_mean);
+        Arrivals(double mean);
         int sample();
 };
 #endif /* Arrivals_hpp */

@@ -9,29 +9,27 @@
 #ifndef GUARD_Decoder_hpp
 #define GUARD_Decoder_hpp
 
-#include <stdio.h>
 #include "Node.hpp"
 #include <vector>
 class Decoder {
 private:
- 
-    int n;
-    int n_rx;
-    int max_delay;
-    std::vector<int> delays;
-    int sent_packets;
-    int lost_packets;
-    int max_decoding_iterations;
-    int steps_per_decoding;
+    int n_;
+    int n_rx_;
+    int maxDelay_;
+    std::vector<int> delays_;
+    int sentPacketsCount_;
+    int lostPacketsCount_;
+    int numDecodingIterations_;
+    int slotsBetweenDecoding_;
+
 public:
-    Decoder(int iter,int steps,int n_in, int n_rx_in,int max_delay_in);
-    void decode(std::vector<Node*> *CN,std::vector<Node*> *VN, unsigned long int time_step);
-    void decode_frame(std::vector<Node*>* CN,std::vector<Node*>* VN, unsigned long int time_step);
-    void count_packets(std::vector<Node*> *VN, unsigned long int time_step,bool boundary_effect);
-    void count_packets_boundary_effect(std::vector<Node *> *VN, unsigned long time_step);
-    void count_packets_no_boundary_effect(std::vector<Node *> *VN, unsigned long time_step);
-    void count_packets_FS(std::vector<Node *> *VN, unsigned long time_step);
-    void count_packets_SC(std::vector<Node *> *VN, unsigned long time_step, int rep);
+    Decoder(int iter, int slots, int n, int n_rx, int maxDelay);
+    void decode(std::vector<Node*> *CN,std::vector<Node*> *VN, unsigned long int timeStep);
+    void decodeFrame(std::vector<Node*>* CN,std::vector<Node*>* VN, unsigned long int timeStep);
+    void countPacketsBoundaryEffect(std::vector<Node *> *VN, unsigned long timeStep);
+    void countPacketsNoBoundaryEffect(std::vector<Node *> *VN, unsigned long timeStep);
+    void countPacketsFS(std::vector<Node *> *VN, unsigned long timeStep);
+    void countPacketsSC(std::vector<Node *> *VN, unsigned long timeStep, int rep);
 
     int getSentPackets();
     int getLostPackets();

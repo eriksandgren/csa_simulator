@@ -7,123 +7,107 @@
 //
 #include "Decoder.hpp"
 using namespace std;
-Decoder::Decoder(int iter,int steps,int n_in,int n_rx_in,int max_delay_in)
+Decoder::Decoder(int iter, int steps, int n_in, int n_rx_in, int max_delay_in)
 {
-	delays.resize(max_delay_in+1);
+	delays_.resize(max_delay_in + 1);
 
-    for (int i=0; i< (int) delays.size(); i++) {
-        delays.at(i)=0;
+    for (int i = 0; i < (int) delays_.size(); i++) {
+        delays_.at(i) = 0;
     }
-    max_delay=max_delay_in;
-    n=n_in;
-    n_rx=n_rx_in;
-    max_decoding_iterations=iter;
-    steps_per_decoding=steps;
-    lost_packets=0;
-    sent_packets=0;
+    maxDelay_ = max_delay_in;
+    n_ = n_in;
+    n_rx_ = n_rx_in;
+    numDecodingIterations_ = iter;
+    slotsBetweenDecoding_ = steps;
+    lostPacketsCount_ = 0;
+    sentPacketsCount_ = 0;
 }
 
-void Decoder::decode(vector<Node*>* CN,vector<Node*>* VN, unsigned long int time_step)
+void Decoder::decode(vector<Node*>* CN, vector<Node*>* VN, unsigned long int timeStep)
 {
     
     // Checks if it is time to decode
-    if ((time_step%steps_per_decoding)==0)
+    if ( (timeStep % slotsBetweenDecoding_)==0 )
     {
-        int iteration=0;
-        vector<Node*>:: iterator iter;
-        bool condition;
-		vector<Node*> VNs_to_resolve;
+        int iteration = 0;
+        bool stopCondition;
+		vector<Node*> VnsToResolve;
         do {
             // Finds all degree-1 CNs in the memory..
-            for (int i=0; i<n_rx; i++)
+            for (int i = 0; i < n_rx_; i++)
             {
-                if ((*CN)[i]->degree==1)
+                if ( (*CN)[i] -> degree == 1)
                 {
-					VNs_to_resolve.push_back(CN->at(i)->getNeighbour(0));
+					VnsToResolve.push_back(CN->at(i)->getNeighbour(0));
                 }
             }
            // Resolves all VNs corresponding to the found degree-1 CNs
-           for (int i=0; i< (int)VNs_to_resolve.size(); i++)
+           for (int i = 0; i < (int) VnsToResolve.size(); i++)
            {
-                VNs_to_resolve.at(i)->resolve(VNs_to_resolve.at(i),time_step);
-               VNs_to_resolve.at(i)->setDecoded();
+                VnsToResolve.at(i) -> resolve(VnsToResolve.at(i), timeStep);
+               VnsToResolve.at(i) -> setDecoded();
            }
             iteration++;
             // We continue if there were some degree one CNs in this iteration and if we have not reached the maximum number of iterations yet.
-            condition= (VNs_to_resolve.size()!=0 && iteration <max_decoding_iterations);
-			VNs_to_resolve.clear();
+            stopCondition = (VnsToResolve.size() != 0 && iteration < numDecodingIterations_);
+			VnsToResolve.clear();
         }
-        while (condition);
+        while (stopCondition);
     }
 }
 
-void Decoder::decode_frame(vector<Node*>* CN,vector<Node*>* VN, unsigned long int time_step)
+void Decoder::decodeFrame(vector<Node*>* CN, vector<Node*>* VN, unsigned long int timeStep)
 {
-    int iteration=0;
-    vector<Node*> VNs_to_resolve;
-    bool condition;
+    int iteration = 0;
+    vector<Node*> VnsToResolve;
+    bool stopCondition;
         do
         {
             // Finds all degree-1 check nodes in the memory..
-            for (int i=0; i<n; i++)
+            for (int i = 0; i < n_ ; i++)
             {
-                if ((*CN)[i]->degree==1)
+                if ((*CN)[i] -> degree == 1)
                 {
-                    VNs_to_resolve.push_back(CN->at(i)->getNeighbour(0));
+                    VnsToResolve.push_back(CN->at(i)->getNeighbour(0));
                 }
             }
             // Resolving the degree-1 users found and their corresponding connections
-            for (int i=0; i<VNs_to_resolve.size(); i++)
+            for (int i = 0; i < VnsToResolve.size(); i++)
             {
-                VNs_to_resolve.at(i)->resolve(VNs_to_resolve.at(i),time_step);
-                VNs_to_resolve.at(i)->setDecoded();
+                VnsToResolve.at(i)->resolve(VnsToResolve.at(i), timeStep);
+                VnsToResolve.at(i)->setDecoded();
             }
             iteration++;
-            condition= (VNs_to_resolve.size()!=0 && iteration < max_decoding_iterations);
-            VNs_to_resolve.clear();
+            stopCondition = (VnsToResolve.size() != 0 && iteration < numDecodingIterations_);
+            VnsToResolve.clear();
         }
-        while (condition);
+        while (stopCondition);
 }
 
-
-void Decoder::count_packets(vector<Node *> *VN, unsigned long time_step,bool boundary_effect)
+void Decoder::countPacketsBoundaryEffect(vector<Node *> *VN, unsigned long timeStep)
 {
-    if (boundary_effect)
-    {
-        count_packets_boundary_effect(VN,time_step);
-    }
-    else
-    {
-        count_packets_no_boundary_effect(VN,time_step);
-    }
-}
-
-void Decoder::count_packets_boundary_effect(vector<Node *> *VN, unsigned long time_step)
-{
-    int i=0;
-    int len=(int) VN->size();
-    int time_since_arrival;
+    int i = 0;
+    int len = (int) VN -> size();
+    int timeSinceArrival;
     Node* temp;
-    while (i<len)
+    while (i < len)
     {
-        time_since_arrival= (int)(time_step- (VN->at(0)->getTimeOfArrival()));
-        if (time_since_arrival>n_rx+n)
+        timeSinceArrival = (int) (timeStep - (VN->at(0)->getTimeOfArrival()));
+        if (timeSinceArrival > n_rx_ + n_)
         {
-            temp=VN->at(0);
+            temp = VN->at(0);
             i++;
-            if(temp->getTimeOfArrival()> (unsigned long) (3*n)){
-            sent_packets++;
+            if(temp->getTimeOfArrival() > (unsigned long) ( 3 * n_)){
+            sentPacketsCount_++;
             
-            if(temp->getDecoded() && VN->at(0)->getDelay()<=max_delay)
-            {
-                delays.at(temp->getDelay())++;
+            if(temp->getDecoded() && VN->at(0)->getDelay() <= maxDelay_){
+                delays_.at(temp->getDelay())++;
             }
             
             else{
-                lost_packets++;
+                lostPacketsCount_++;
             }
             }
-            
             VN->erase(VN->begin());
             delete temp;
         }
@@ -133,28 +117,73 @@ void Decoder::count_packets_boundary_effect(vector<Node *> *VN, unsigned long ti
         }
     }
 }
-void Decoder::count_packets_SC(vector<Node *> *VN, unsigned long time_step,int rep)
+
+void Decoder::countPacketsNoBoundaryEffect(vector<Node *> *VN, unsigned long timeStep)
+{
+    int i = 0;
+    int len = (int) VN->size();
+    int timeSinceArrival;
+    Node* temp;
+    
+    
+    while (i < len)
+    {
+        timeSinceArrival= (int)(timeStep - (VN->at(0)->getTimeOfArrival()));
+        if (timeSinceArrival > n_rx_ + n_)
+        {
+            temp = VN->at(0);
+            i++;
+            // TODO: Send in a variable saying where we start counting packets instead of relying on this computation
+            if(VN->at(0)->getTimeOfArrival() < (unsigned long) 2 * n_rx_ + n_)
+            {
+                VN->erase(VN->begin());
+                delete temp;
+            }
+            else{
+                sentPacketsCount_++;
+                
+                if(temp -> getDecoded() && temp -> getDelay() <= maxDelay_)
+                {
+                    delays_.at(temp->getDelay())++;
+                }
+                
+                else{
+                    lostPacketsCount_++;
+                }
+                VN->erase(VN->begin());
+                delete temp;
+            }
+        }
+        else
+        {
+            i = len;
+        }
+    }
+}
+
+void Decoder::countPacketsSC(vector<Node *> *VN, unsigned long timeStep, int rep)
 {
     int len=(int) VN->size();
-    int time_since_arrival;
+    int timeSinceArrival;
     Node* temp;
     while (len != 0)
     {
-        time_since_arrival= (int)(time_step- (VN->at(0)->getTimeOfArrival()));
-        if (time_since_arrival>n_rx+n)
+        timeSinceArrival = (int) (timeStep - (VN->at(0)->getTimeOfArrival()));
+        if (timeSinceArrival > n_rx_ + n_)
         {
-            temp=(*VN)[0];
-            if(temp->getTimeOfArrival()> (unsigned long) (rep*n+5*n_rx))
+            temp = (*VN)[0];
+            // TODO: Send in a variable saying where we start counting packets instead of relying on this computation
+            if(temp->getTimeOfArrival() > (unsigned long) (rep * n_ + 5 * n_rx_))
             {
-                sent_packets++;
+                sentPacketsCount_++;
 
-                if(temp->getDecoded() && VN->at(0)->getDelay()<=max_delay)
+                if(temp->getDecoded() && VN->at(0)->getDelay()<=maxDelay_)
                 {
-                    delays.at(temp->getDelay())++;
+                    delays_.at(temp->getDelay())++;
                 }
                 else
                 {
-                    lost_packets++;
+                    lostPacketsCount_++;
                 }
             }
             VN->erase(VN->begin());
@@ -166,51 +195,10 @@ void Decoder::count_packets_SC(vector<Node *> *VN, unsigned long time_step,int r
         }
     }
 }
-void Decoder::count_packets_no_boundary_effect(vector<Node *> *VN, unsigned long time_step)
-{
-    int i=0;
-    int len=(int) VN->size();
-    int time_since_arrival;
-    Node* temp;
-    
-    
-    while (i<len)
-    {
-        time_since_arrival= (int)(time_step- (VN->at(0)->getTimeOfArrival()));
-        if (time_since_arrival>n_rx+n)
-        {
-            temp=VN->at(0);
-            //temp->letGoOffNeighbours(temp);
-            i++;
-            
-            if(VN->at(0)->getTimeOfArrival()<(unsigned long)2*n_rx+n)
-            {
-                VN->erase(VN->begin());
-                delete temp;
-            }
-            else{
-                sent_packets++;
-                
-                if(temp->getDecoded() && temp->getDelay()<=max_delay)
-                {
-                    delays.at(temp->getDelay())++;
-                }
-                
-                else{
-                    lost_packets++;
-                }
-                VN->erase(VN->begin());
-                delete temp;
-            }
-        }
-        else
-        {
-            i=len;
-        }
-    }
-}
 
-void Decoder::count_packets_FS(vector<Node *> *VN, unsigned long time_step)
+
+
+void Decoder::countPacketsFS(vector<Node *> *VN, unsigned long time_step)
 {
     // For FS we simply count packets at the end of every frame! This empties also the old VN-vector.
     int i=0;
@@ -221,14 +209,14 @@ void Decoder::count_packets_FS(vector<Node *> *VN, unsigned long time_step)
             temp=VN->at(0);
             temp->letGoOffNeighbours(temp);
             i++;
-            sent_packets++;
+            sentPacketsCount_++;
             if(temp->getDecoded())
             {
-                delays.at(temp->getDelay())++;
+                delays_.at(temp->getDelay())++;
             }
             else
             {
-                lost_packets++;
+                lostPacketsCount_++;
             }
 
             VN->erase(VN->begin());
@@ -241,23 +229,23 @@ void Decoder::count_packets_FS(vector<Node *> *VN, unsigned long time_step)
 
 int Decoder::getSentPackets()
 {
-    return sent_packets;
+    return sentPacketsCount_;
 }
 
 int Decoder::getLostPackets()
 {
-    return lost_packets;
+    return lostPacketsCount_;
 }
 
 vector<int> Decoder::getDelays()
 {
-    return delays;
+    return delays_;
 }
 
-void Decoder::printFrame(vector<Node*>* CN)
+void Decoder::printFrame(vector<Node*> *CN)
 {
-    for (int i=0; i< (int) CN->size(); i++) {
-        printf("%d ",CN->at(i)->degree);
+    for (int i = 0; i < (int) CN->size(); i++) {
+        printf("%d ", CN->at(i)->degree);
     }
     printf("\n");
 }
