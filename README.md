@@ -1,12 +1,14 @@
 # csa_simulator
 
-A simulator for (first and foremost) Frame Asynchronous Coded Slotted ALOHA (CSA)
-the simulator is used to evaluate the performance of this multiple access technique 
-and compare it with other techniques. 
+Simulator for FA-CSA, FS-CSA and SC-CSA.
 
-The simulator might be extended to handle other forms of CSA as well, and to be more user friendly. 
+Parameters can be changed in the Parameters.hpp file.
+The projects need to be rebuilt once the parameters are changed, this is best
+done by using the commands in the project folder
+>> make clean
 
-Right now the simulator can be used by defining the desired simulation parameters in main.cpp, compiling the project
-and running. 
+>> make
 
-The performance is evaluated in terms of packet loss rate and packet delay.  
+The simulator can then be run by executing the produced binary 'Simulator',
+once simulation is done the results can be viewed in the results.txt file
+(or other specified name).
