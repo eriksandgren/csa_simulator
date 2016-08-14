@@ -6,32 +6,51 @@
 //  Copyright © 2016 Erik Sandgren. All rights reserved.
 //
 #include "Decoder.hpp"
+#include <iostream>
 using namespace std;
-Decoder::Decoder(int iter, int steps, int n_in, int n_rx_in, int max_delay_in)
+Decoder::Decoder(int iter, int steps, int n, int n_rx, int maxDelay)
 {
-	delays_.resize(max_delay_in + 1);
-
+	delays_.resize(maxDelay + 1);
     for (int i = 0; i < (int) delays_.size(); i++) {
         delays_.at(i) = 0;
     }
-    maxDelay_ = max_delay_in;
-    n_ = n_in;
-    n_rx_ = n_rx_in;
+    maxDelay_ = maxDelay;
+    n_ = n;
+    n_rx_ = n_rx;
     numDecodingIterations_ = iter;
     slotsBetweenDecoding_ = steps;
     lostPacketsCount_ = 0;
     sentPacketsCount_ = 0;
+    firstDecoding_ = true;
 }
 
 void Decoder::decode(vector<Node*>* CN, vector<Node*>* VN, unsigned long int timeStep)
 {
+    int iteration = 0;
     // Checks if it is time to decode
     if ( (timeStep % slotsBetweenDecoding_)==0 )
     {
-        int iteration = 0;
-        bool stopCondition;
 		vector<Node*> VnsToResolve;
-        do {
+    	int numOfSlotsToCheck = firstDecoding_ ? n_rx_ : slotsBetweenDecoding_;
+
+         for (int i = 0; i < numOfSlotsToCheck; i++)
+         {
+             if ( (*CN)[n_rx_ -1 - i] -> degree == 1)
+             {
+					VnsToResolve.push_back(CN->at(n_rx_ -1 - i)->getNeighbour(0));
+             }
+         }
+
+         for (int i = 0; i < (int) VnsToResolve.size(); i++)
+         {
+             VnsToResolve.at(i) -> resolve(timeStep);
+             VnsToResolve.at(i) -> setDecoded();
+         }
+
+         iteration = 1;
+         bool stopCondition = (VnsToResolve.size() != 0 && iteration < numDecodingIterations_);
+         VnsToResolve.clear();
+         while(stopCondition){
             // Finds all degree-1 CNs in the memory..
             for (int i = 0; i < n_rx_; i++)
             {
@@ -43,7 +62,7 @@ void Decoder::decode(vector<Node*>* CN, vector<Node*>* VN, unsigned long int tim
            // Resolves all VNs corresponding to the found degree-1 CNs
            for (int i = 0; i < (int) VnsToResolve.size(); i++)
            {
-                VnsToResolve.at(i) -> resolve(timeStep);
+               VnsToResolve.at(i) -> resolve(timeStep);
                VnsToResolve.at(i) -> setDecoded();
            }
             iteration++;
@@ -51,8 +70,9 @@ void Decoder::decode(vector<Node*>* CN, vector<Node*>* VN, unsigned long int tim
             stopCondition = (VnsToResolve.size() != 0 && iteration < numDecodingIterations_);
 			VnsToResolve.clear();
         }
-        while (stopCondition);
     }
+    cout << "Number of iter = " << iteration << endl;
+    firstDecoding_ = iteration == numDecodingIterations_;
 }
 
 void Decoder::decodeFrame(vector<Node*>* CN, vector<Node*>* VN, unsigned long int timeStep)

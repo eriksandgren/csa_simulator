@@ -21,6 +21,7 @@ private:
     int lostPacketsCount_;
     int numDecodingIterations_;
     int slotsBetweenDecoding_;
+    bool firstDecoding_;
 
 public:
     Decoder(int iter, int slots, int n, int n_rx, int maxDelay);
