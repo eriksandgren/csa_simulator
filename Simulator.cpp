@@ -16,6 +16,7 @@
 #include "Arrivals.hpp"
 #include "Decoder.hpp"
 #include "Parameters.hpp"
+#include <assert.h>
 
 using namespace std;
 
@@ -188,8 +189,165 @@ void evaluate_load_FA(int index)
 	cout << setprecision(normal_prec);
 
 }
-void evaluate_load_FS(int index){};
-void evaluate_load_SC(int index){};
+
+void evaluate_load_FS(int index){
+		n_rx = n;
+        int samp;
+        unsigned long int time_step=0;
+        Arrivals poiss= Arrivals(g[index]);
+    	Encoder enc=Encoder(n, n_rx, d, Lambda,q);
+    	Decoder dec=Decoder(iter_max, how_often_to_decode, n, n_rx, maximum_delay);
+        vector<Node*> VN;
+        vector<Node*> VN_for_next_frame;
+        vector<Node*>CN(2*n);
+        int packets_sent=0;
+        int packets_lost=0;
+        Node* temp_CN;
+        Node* temp_VN;
+        // Initialize CNs
+        for (int i=0; i<2*n; i++)
+        {
+            time_step++;
+            temp_CN=new Node(time_step);
+            CN[i]=temp_CN;
+        }
+        // time_step=;
+        while(packets_sent<num_packets_to_sim && packets_lost<num_PL_to_sim)
+        {
+            time_step++;
+            //Create new VN and wait.
+            samp=poiss.sample();
+            for (int i=0; i<samp; i++)
+            {
+                temp_VN=new Node(time_step);
+                VN_for_next_frame.push_back(temp_VN);
+            }
+
+            if(save_delays){dec.decode(&CN, &VN, time_step);}
+            if (time_step%n == 0 )
+            {
+                if(!save_delays){
+                    dec.decode_frame(&CN, &VN, time_step);
+                }
+
+                dec.count_packets_FS(&VN, time_step);
+                packets_sent=dec.getSentPackets();
+                packets_lost=dec.getLostPackets();
+                for (int i=0; i<VN_for_next_frame.size(); i++)
+                {
+                    temp_VN = VN_for_next_frame.at(i);
+                    enc.distribute_repetitions_uniformly(temp_VN,&CN);
+                    VN.push_back(temp_VN);
+                }
+                VN_for_next_frame.clear();
+            }
+
+            // Create new CN and remove the oldest one.
+            temp_CN=new Node(time_step);
+            CN.push_back(temp_CN);
+            temp_CN=CN[0];
+            CN.erase(CN.begin());
+            temp_CN->letGoOffNeighbours(temp_CN);
+            delete temp_CN;
+        }
+        VN.clear();
+        CN.clear();
+        PLR[index]=(double)packets_lost/(double) packets_sent;
+        if(save_delays){
+        delays.at(index) = dec.getDelays();
+        }
+        streamsize normal_prec=cout.precision();
+        cout<<setprecision(3)<<fixed;
+        cout<< g[index] << " \t \t "<< setw((int)log10(num_packets_to_sim)+1)<< packets_sent << " \t \t" <<setw((int)log10(num_PL_to_sim)+1) << packets_lost << " \t \t "<< scientific<<PLR[index]<<endl;
+        cout<<setprecision(normal_prec);
+};
+
+void evaluate_load_SC(int index)
+	{
+		assert(1 == sizeof(d)/sizeof(int));
+		int rep = d[0];
+		int n_sub_frame = n / rep;
+		n_rx = 5*rep*n_sub_frame; // makes the memory "sufficiently" large
+	    int samp;
+	    unsigned long int time_step=0;
+	    Arrivals poiss= Arrivals(g[index]);
+    	Encoder enc=Encoder(n_sub_frame, n_rx, d, Lambda,q);
+	    Decoder dec=Decoder(iter_max, how_often_to_decode, n_sub_frame, n_rx, maximum_delay);
+
+	    vector<Node*> VN;
+	    vector<Node*> VNs_for_next_frame;
+	    vector<Node*>CN(rep*n_sub_frame+n_rx);
+	    int packets_sent=0;
+	    int packets_lost=0;
+	    Node* temp_CN;
+	    Node* temp_VN;
+
+	    // Initialize CNs
+	    for (int i=0; i<n_rx; i++)
+	    {
+	        temp_CN=new Node();
+	        CN[i]=temp_CN;
+	    }
+	    for (int i=n_rx; i<n_rx+rep*n_sub_frame; i++)
+	    {
+	        time_step++;
+	        temp_CN=new Node(time_step);
+	        CN[i]=temp_CN;
+	    }
+
+	    time_step=0;
+
+
+	    while(packets_sent<num_packets_to_sim && packets_lost<num_PL_to_sim)    {
+	        // Arrivals at this time step, saved in the VNs_for_next_frame.
+	        samp=poiss.sample();
+	        for (int i=0; i<samp; i++)
+	        {
+	            temp_VN=new Node(time_step);
+	            VNs_for_next_frame.push_back(temp_VN);
+	        }
+	        time_step++;
+
+	        // If its time for a new frame, we let the activated VNs distribute their 'd' replicas...
+	        if((time_step % n_sub_frame)==0)
+	        {
+	            for (int i = 0; i < VNs_for_next_frame.size();i++)
+	            {
+	                enc.distribute_repetitions_SC(VNs_for_next_frame[i], &CN);
+	            }
+	            VN.insert(VN.end(), VNs_for_next_frame.begin(), VNs_for_next_frame.end());
+	            VNs_for_next_frame.clear();
+	        }
+
+
+	        // Shifts in a new node at the back of the memory and removes the  node at the front (the oldest one)
+	        temp_CN=new Node(time_step+rep*n_sub_frame);
+	        CN.push_back(temp_CN);
+	        temp_CN=CN[0];
+	        temp_CN->letGoOffNeighbours(temp_CN);
+	        CN.erase(CN.begin());
+	        delete temp_CN;
+	        dec.decode(&CN, &VN, time_step);
+
+	        // Counting packets: different method depending on the time_initial variable
+	        dec.count_packets_SC(&VN, time_step, rep);
+	        packets_sent=dec.getSentPackets();
+	        packets_lost=dec.getLostPackets();
+
+	    }
+
+	    VN.clear();
+	    CN.clear();
+	    if (save_delays)
+	    {
+	        delays.at(index) = dec.getDelays();
+	    }
+	    PLR.at(index)=(double)packets_lost / (double)packets_sent;
+	    streamsize normal_prec=cout.precision();
+	    cout<<setprecision(3)<<fixed;
+	    cout<< g[index] << " \t \t "<< setw((int)log10(num_packets_to_sim)+1)<< packets_sent << " \t \t" <<setw((int)log10(num_PL_to_sim)+1) << packets_lost << " \t \t "<< scientific<<PLR.at(index)<<endl;
+	    cout<<setprecision(normal_prec);
+	}
 
 void write_to_output_file(){
 	///////// WRITES TO OUTPUT ////////////////////////

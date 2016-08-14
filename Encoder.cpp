@@ -60,7 +60,6 @@ void Encoder::distribute_repetitions(Node* VN, vector <Node*>*CNs,bool first_slo
     
 }
 
-
 // Chooses a degree and CNs for transmission for a VN replicas are placed uniformly in the 'n'
 // following CNs
 void Encoder::distribute_repetitions_uniformly(Node* VN,vector<Node*>*CNs ){
@@ -111,6 +110,25 @@ void Encoder::distribute_repetitions_first_slot(Node* VN, vector<Node*>*CNs)
     
     // Connects the correct CNs to the VN and the VN to the CNs...
     for (int i=0; i<repetition_rate; i++)
+    {
+        CN=CNs->at(return_vector.at(i)+n_rx);
+        CN->addNeighbor(VN);
+        VN->addNeighbor(CN);
+    }
+}
+
+void Encoder::distribute_repetitions_SC(Node* VN,vector<Node*>*CNs )
+{
+    int tmp;
+    vector<int> return_vector;
+    Node* CN;
+    for (int i=0; i<d[0]; i++)
+    {
+        tmp=(rand()%(n)) + i*n;
+        return_vector.push_back(tmp);
+    }
+    // Connects the correct CNs to the VN and the VN to the CNs...
+    for (int i=0; i<d[0]; i++)
     {
         CN=CNs->at(return_vector.at(i)+n_rx);
         CN->addNeighbor(VN);

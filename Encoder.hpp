@@ -28,5 +28,6 @@ public:
     void distribute_repetitions(Node* VN, std::vector<Node*>*CN, bool first_slot);
     void distribute_repetitions_first_slot(Node* VN, std::vector <Node*>*CN);
     void distribute_repetitions_uniformly(Node* VN,std::vector<Node*>*CN);
+    void distribute_repetitions_SC(Node* VN,std::vector<Node*>*CNs );
 };
 #endif /* Encoder_hpp */

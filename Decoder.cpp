@@ -57,6 +57,35 @@ void Decoder::decode(vector<Node*>* CN,vector<Node*>* VN, unsigned long int time
     }
 }
 
+void Decoder::decode_frame(vector<Node*>* CN,vector<Node*>* VN, unsigned long int time_step)
+{
+    int iteration=0;
+    vector<Node*> VNs_to_resolve;
+    bool condition;
+        do
+        {
+            // Finds all degree-1 check nodes in the memory..
+            for (int i=0; i<n; i++)
+            {
+                if ((*CN)[i]->degree==1)
+                {
+                    VNs_to_resolve.push_back(CN->at(i)->getNeighbour(0));
+                }
+            }
+            // Resolving the degree-1 users found and their corresponding connections
+            for (int i=0; i<VNs_to_resolve.size(); i++)
+            {
+                VNs_to_resolve.at(i)->resolve(VNs_to_resolve.at(i),time_step);
+                VNs_to_resolve.at(i)->setDecoded();
+            }
+            iteration++;
+            condition= (VNs_to_resolve.size()!=0 && iteration < max_decoding_iterations);
+            VNs_to_resolve.clear();
+        }
+        while (condition);
+}
+
+
 void Decoder::count_packets(vector<Node *> *VN, unsigned long time_step,bool boundary_effect)
 {
     if (boundary_effect)
@@ -104,7 +133,39 @@ void Decoder::count_packets_boundary_effect(vector<Node *> *VN, unsigned long ti
         }
     }
 }
+void Decoder::count_packets_SC(vector<Node *> *VN, unsigned long time_step,int rep)
+{
+    int len=(int) VN->size();
+    int time_since_arrival;
+    Node* temp;
+    while (len != 0)
+    {
+        time_since_arrival= (int)(time_step- (VN->at(0)->getTimeOfArrival()));
+        if (time_since_arrival>n_rx+n)
+        {
+            temp=(*VN)[0];
+            if(temp->getTimeOfArrival()> (unsigned long) (rep*n+5*n_rx))
+            {
+                sent_packets++;
 
+                if(temp->getDecoded() && VN->at(0)->getDelay()<=max_delay)
+                {
+                    delays.at(temp->getDelay())++;
+                }
+                else
+                {
+                    lost_packets++;
+                }
+            }
+            VN->erase(VN->begin());
+            len= VN->size();
+        }
+        else
+        {
+            len=0;
+        }
+    }
+}
 void Decoder::count_packets_no_boundary_effect(vector<Node *> *VN, unsigned long time_step)
 {
     int i=0;
@@ -148,6 +209,35 @@ void Decoder::count_packets_no_boundary_effect(vector<Node *> *VN, unsigned long
         }
     }
 }
+
+void Decoder::count_packets_FS(vector<Node *> *VN, unsigned long time_step)
+{
+    // For FS we simply count packets at the end of every frame! This empties also the old VN-vector.
+    int i=0;
+    int len=int(VN->size());
+    Node* temp;
+    while (i<len)
+    {
+            temp=VN->at(0);
+            temp->letGoOffNeighbours(temp);
+            i++;
+            sent_packets++;
+            if(temp->getDecoded())
+            {
+                delays.at(temp->getDelay())++;
+            }
+            else
+            {
+                lost_packets++;
+            }
+
+            VN->erase(VN->begin());
+            delete temp;
+    }
+
+}
+
+
 
 int Decoder::getSentPackets()
 {

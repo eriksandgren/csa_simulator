@@ -3,8 +3,8 @@ using namespace std;
 
 enum CSA_type{FA_FNB, FA_FB, FA_UNB, FA_UB, FS, SC};
 
-CSA_type typeOfSimulation = FA_FB;
-int n = 100; // Frame length 'n'
+CSA_type typeOfSimulation = SC;
+int n = 120; // Frame length 'n'
 int n_rx= 5*n; // Memory length 'n_rx'
 int maximum_delay=n_rx+n;  // For a non max-delay constrained simulation, put maximum_delay to larger than n_rx+n
 int g_index;
@@ -29,3 +29,4 @@ string filename = "results.txt";
 vector<double> PLR(g_len); // All elements are initially 0 this way
 // Matrix in which simulated delay pmf is saved
 vector<vector<int> > delays (0,vector<int>(0,0));
+
