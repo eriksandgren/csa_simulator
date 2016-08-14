@@ -7,18 +7,21 @@ CsaType typeOfSimulation = SC;
 int n = 120; // Frame length 'n'
 int n_rx= 5*n; // Memory length 'n_rx'
 int maximumDelay=n_rx + n;  // For a non max-delay constrained simulation, put maximum_delay to larger than n_rx+n
-int gIndex;
+
 double g[] = {.45,0.55,0.60,0.65,0.70,0.75,0.80,0.85,0.90,0.95,1.0};
 int gLength = sizeof(g) / sizeof(double);
+int gIndex;
 
 int numberOfPacketsToSimulateMax =(int)1e6;  // How many sent packets to simulate (at most) for each system-load value
 int numberOfPacketLossesToSimulateMax=numberOfPacketsToSimulateMax/100; // How many packet losses to simulate (at most) for each system-load value
 
 
 // Defines the VN-degree distribution
+// Example : int d[] = {3, 8}; double Lambda = {0.86, 0.14};
 int d[] = {3};
 double Lambda[] ={1};
 int q = sizeof(Lambda) / sizeof(double);
+
 // Defines the number of decoding iterations and how often to decode
 int numDecodingIterations = (int)1e7;
 int slotsBetweenDecoding = 1;

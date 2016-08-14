@@ -16,18 +16,19 @@
 #include "Node.hpp"
 class Encoder {
 private:
-    int n;
-    int n_rx;
-    int* d;
-    double* Lambda;
-	int size;
-    std::vector<double> cdf;
+    int n_;
+    int n_rx_;
+    int* d_;
+    double* Lambda_;
+	int size_;
+    std::vector<double> cdf_;
+
 public:
-    Encoder(int n_in,int n_rx_in, int d_in[], double Lambda_in[], int size_in);
-    int get_repetition_rate();
-    void distribute_repetitions(Node* VN, std::vector<Node*>*CN, bool first_slot);
-    void distribute_repetitions_first_slot(Node* VN, std::vector <Node*>*CN);
-    void distribute_repetitions_uniformly(Node* VN,std::vector<Node*>*CN);
-    void distribute_repetitions_SC(Node* VN,std::vector<Node*>*CNs );
+    Encoder(int n,int n_rx, int d[], double Lambda[], int size);
+    int getRepRate();
+    void distributeReps(Node* VN, std::vector<Node*>*CN, bool firstSlot);
+    void distributeRepsFirstSlot(Node* VN, std::vector <Node*>*CN);
+    void distributeRepsUniform(Node* VN, std::vector<Node*>*CN);
+    void distributeRepsSC(Node* VN, std::vector<Node*>*CNs );
 };
 #endif /* Encoder_hpp */

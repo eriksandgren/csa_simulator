@@ -8,35 +8,37 @@
 //
 #include "Node.hpp"
 using namespace std;
+
 Node::Node() {
     degree = 0;
     vector<Node*> tmp;
-    neighbours = tmp;
-    decoded = false;
-    timeOfArrival = 0;
-    delay = -1;
+    neighbours_ = tmp;
+    decoded_ = false;
+    timeOfArrival_ = 0;
+    delay_ = -1;
 
 }
 
 Node::Node(unsigned long int toa) {
     degree = 0;
-    timeOfArrival = toa;
+    timeOfArrival_ = toa;
     vector<Node*> tmp;
-    neighbours = tmp;
-    neighbours.clear();
-    decoded = false;
-    delay = -1;
+    neighbours_ = tmp;
+    neighbours_.clear();
+    decoded_ = false;
+    delay_ = -1;
 }
+
 Node::~Node(){
-    vector<Node*>().swap(neighbours);
+    vector<Node*>().swap(neighbours_);
 }
 void Node::addNeighbor(Node* newNeighbor){
-    neighbours.push_back(newNeighbor);
+    neighbours_.push_back(newNeighbor);
     degree++;
 }
 
 void Node::setDegree(int newDegree){
-    degree=newDegree;
+    degree = newDegree;
 }
 
 int Node::getDegree()
@@ -44,69 +46,46 @@ int Node::getDegree()
     return degree;
 }
 
-
 void Node::setDecoded()
 {
-    decoded=true;
+    decoded_ = true;
 }
-
 
 bool Node::getDecoded()
 {
-    return decoded;
+    return decoded_;
 }
-
-
 
 unsigned long int Node::getTimeOfArrival()
 {
-    return timeOfArrival;
+    return timeOfArrival_;
 }
-
-
-
 
 void Node::printDegree(){
-    printf("The node has degree %d \n",degree);
+    printf("The node has degree %d \n", degree);
 }
 
-
-
 void Node::printNeighbors(){
-    for (int i=0; i<degree; i++) {
-        printf("Neighbour %d has address %p\n",i,neighbours.at(i));
+    for (int i = 0; i < degree; i++) {
+        printf("Neighbour %d has address %p\n", i, neighbours_.at(i));
     }
 }
 
-
-void Node::resolve(Node* adr,unsigned long int time_step)
+void Node::resolve(unsigned long int timeStep)
 {
-    delay=(int)time_step-(int)timeOfArrival;
-    while (neighbours.size()>0) {
-        neighbours.at(0)->remove_edge(adr);
-        neighbours.erase(neighbours.begin());
+    delay_ = (int) timeStep - (int) timeOfArrival_;
+    while (neighbours_.size() > 0) {
+        neighbours_.at(0)->removeEdge(this);
+        neighbours_.erase(neighbours_.begin());
         degree--;
     }
 }
 
-
-
-void Node::remove_edge(Node* adr){
-    for (int i=0; i < (int) neighbours.size(); i++) {
-        if (neighbours[i]==adr)
+void Node::removeEdge(Node* adr){
+    for (int i = 0; i < (int) neighbours_.size(); i++) {
+        if (neighbours_[i] == adr)
         {
-            neighbours.erase(neighbours.begin()+i);
-            degree--;
-        }
-    }
-}
-
-void Node::letGoOffEdge(Node* adr)
-{
-    for (int i=0; i < (int) neighbours.size(); i++) {
-        if (neighbours[i]==adr)
-        {
-            neighbours.erase(neighbours.begin()+i);
+            neighbours_.erase(neighbours_.begin()+i);
             degree--;
         }
     }
@@ -114,20 +93,21 @@ void Node::letGoOffEdge(Node* adr)
 
 Node* Node::getNeighbour(int i)
 {
-		return neighbours[i];
+		return neighbours_[i];
 }
-
 
 int Node::getDelay()
 {
-    return delay;
+    return delay_;
 }
-void Node::letGoOffNeighbours(Node* adr)
+
+void Node::letGoOffNeighbours()
 {
-    for (int i=0; i<(int) neighbours.size(); i++) {
-        neighbours[i]->letGoOffEdge(adr);
+    for (int i = 0; i < (int) neighbours_.size(); i++) {
+        neighbours_[i]->removeEdge(this);
     }
 }
+
 int Node::getNumNeighbours(){
-    return (int)neighbours.size();
+    return (int) neighbours_.size();
 }

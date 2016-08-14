@@ -25,7 +25,6 @@ Decoder::Decoder(int iter, int steps, int n_in, int n_rx_in, int max_delay_in)
 
 void Decoder::decode(vector<Node*>* CN, vector<Node*>* VN, unsigned long int timeStep)
 {
-    
     // Checks if it is time to decode
     if ( (timeStep % slotsBetweenDecoding_)==0 )
     {
@@ -44,7 +43,7 @@ void Decoder::decode(vector<Node*>* CN, vector<Node*>* VN, unsigned long int tim
            // Resolves all VNs corresponding to the found degree-1 CNs
            for (int i = 0; i < (int) VnsToResolve.size(); i++)
            {
-                VnsToResolve.at(i) -> resolve(VnsToResolve.at(i), timeStep);
+                VnsToResolve.at(i) -> resolve(timeStep);
                VnsToResolve.at(i) -> setDecoded();
            }
             iteration++;
@@ -74,7 +73,7 @@ void Decoder::decodeFrame(vector<Node*>* CN, vector<Node*>* VN, unsigned long in
             // Resolving the degree-1 users found and their corresponding connections
             for (int i = 0; i < VnsToResolve.size(); i++)
             {
-                VnsToResolve.at(i)->resolve(VnsToResolve.at(i), timeStep);
+                VnsToResolve.at(i)->resolve(timeStep);
                 VnsToResolve.at(i)->setDecoded();
             }
             iteration++;
@@ -196,8 +195,6 @@ void Decoder::countPacketsSC(vector<Node *> *VN, unsigned long timeStep, int rep
     }
 }
 
-
-
 void Decoder::countPacketsFS(vector<Node *> *VN, unsigned long time_step)
 {
     // For FS we simply count packets at the end of every frame! This empties also the old VN-vector.
@@ -207,7 +204,7 @@ void Decoder::countPacketsFS(vector<Node *> *VN, unsigned long time_step)
     while (i<len)
     {
             temp=VN->at(0);
-            temp->letGoOffNeighbours(temp);
+            temp->letGoOffNeighbours();
             i++;
             sentPacketsCount_++;
             if(temp->getDecoded())
@@ -225,14 +222,12 @@ void Decoder::countPacketsFS(vector<Node *> *VN, unsigned long time_step)
 
 }
 
-
-
-int Decoder::getSentPackets()
+int Decoder::getSentPacketsCount()
 {
     return sentPacketsCount_;
 }
 
-int Decoder::getLostPackets()
+int Decoder::getLostPacketsCount()
 {
     return lostPacketsCount_;
 }

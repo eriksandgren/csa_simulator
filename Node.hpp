@@ -16,12 +16,11 @@ public:
     ~Node();
     Node(unsigned long int toa);
     void setDegree(int newDegree);
-    void resolve(Node* adr,unsigned long int time_step);
-    void remove_edge(Node* adr);
+    void resolve(unsigned long int timeStep);
+    void removeEdge(Node* adr);
     void printDegree();
     void printNeighbors();
-    void letGoOffNeighbours(Node* adr);
-    void letGoOffEdge(Node* adr);
+    void letGoOffNeighbours();
     void addNeighbor(Node* newNeighbor);
     unsigned long int getTimeOfArrival();
     Node* getNeighbour(int i);
@@ -33,10 +32,10 @@ public:
     int getNumNeighbours();
     
 private:
-    bool decoded;
-    int delay;
-    unsigned long int timeOfArrival;
-    std::vector<Node*> neighbours;
+    bool decoded_;
+    int delay_;
+    unsigned long int timeOfArrival_;
+    std::vector<Node*> neighbours_;
 };
 
 #endif /* Node_h */

@@ -32,7 +32,7 @@ int main () {
 	clock_t beginTime = clock();
 	if(saveDelays)
 	{
-		delays.resize(gLength,vector<int>(maximumDelay, 0));
+		delays.resize(gLength, vector<int>(maximumDelay, 0));
 	}
 	cout << "Frame Asynchronous Coded Slotted ALOHA simulation \n";
 	cout << "n = " << n << "\n";
@@ -41,7 +41,7 @@ int main () {
 	cout << "Packets to simulate = " << numberOfPacketsToSimulateMax << "\n";
 	cout << "Please find the results in " << fileName << "\n\n";
 	cout << "**************** Progress *************** " << "\n\n";
-	cout << "Load \t \t    Sent \t\tLost \t \t   PLR \n";
+	cout << "Load \t \t    Sent \t\t Lost \t \t   PLR \n";
 	cout << "------------------------------------------------------- \n";
 	gIndex = gLength-1;
 
@@ -110,7 +110,7 @@ void evalLoadFa(int index)
 			tempCn = CN[0];
 
 			CN.erase(CN.begin());
-			tempCn -> letGoOffNeighbours(tempCn);
+			tempCn -> letGoOffNeighbours();
 			delete tempCn;
 			//Create new VN and distribute its packets...
 			samp = poiss.sample();
@@ -119,12 +119,12 @@ void evalLoadFa(int index)
 				temp_VN = new Node(timeStep);
 				if(typeOfSimulation == FA_FNB || typeOfSimulation == FA_FB)
 				{
-					enc.distribute_repetitions_first_slot(temp_VN, &CN);
+					enc.distributeRepsFirstSlot(temp_VN, &CN);
 				}
 				else
 
 				{
-					enc.distribute_repetitions_uniformly(temp_VN, &CN);
+					enc.distributeRepsUniform(temp_VN, &CN);
 				}
 				VN.push_back(temp_VN);
 			}
@@ -140,7 +140,7 @@ void evalLoadFa(int index)
 		CN.push_back(tempCn);
 		tempCn = CN[0];
 		CN.erase(CN.begin());
-		tempCn -> letGoOffNeighbours(tempCn);
+		tempCn -> letGoOffNeighbours();
 		delete tempCn;
 
 		//Create new VN and distribute its packets...
@@ -151,12 +151,12 @@ void evalLoadFa(int index)
 			temp_VN = new Node(timeStep);
 			if(typeOfSimulation == FA_FNB || typeOfSimulation == FA_FB)
 			{
-				enc.distribute_repetitions_first_slot(temp_VN, &CN);
+				enc.distributeRepsFirstSlot(temp_VN, &CN);
 			}
 			else
 
 			{
-				enc.distribute_repetitions_uniformly(temp_VN, &CN);
+				enc.distributeRepsUniform(temp_VN, &CN);
 			}
 			VN.push_back(temp_VN);
 		}
@@ -173,8 +173,8 @@ void evalLoadFa(int index)
 			dec.countPacketsNoBoundaryEffect(&VN, timeStep);
 		}
 
-		sentPacketsCount = dec.getSentPackets();
-		lostPacketsCount = dec.getLostPackets();
+		sentPacketsCount = dec.getSentPacketsCount();
+		lostPacketsCount = dec.getLostPacketsCount();
 
 	}
 	VN.clear();
@@ -238,12 +238,12 @@ void evalLoadFs(int index){
                 }
 
                 dec.countPacketsFS(&VN, timeStep);
-                sentPacketsCount = dec.getSentPackets();
-                lostPacketsCount = dec.getLostPackets();
+                sentPacketsCount = dec.getSentPacketsCount();
+                lostPacketsCount = dec.getLostPacketsCount();
                 for (int i = 0; i < VNForNextFrame.size(); i++)
                 {
                     tempVN = VNForNextFrame.at(i);
-                    enc.distribute_repetitions_uniformly(tempVN, &CN);
+                    enc.distributeRepsUniform(tempVN, &CN);
                     VN.push_back(tempVN);
                 }
                 VNForNextFrame.clear();
@@ -254,7 +254,7 @@ void evalLoadFs(int index){
             CN.push_back(tempCN);
             tempCN = CN[0];
             CN.erase(CN.begin());
-            tempCN -> letGoOffNeighbours(tempCN);
+            tempCN -> letGoOffNeighbours();
             delete tempCN;
         }
         VN.clear();
@@ -327,7 +327,7 @@ void evalLoadSc(int index)
 	        {
 	            for (int i = 0; i < VNForNextFrame.size();i++)
 	            {
-	                enc.distribute_repetitions_SC(VNForNextFrame[i], &CN);
+	                enc.distributeRepsSC(VNForNextFrame[i], &CN);
 	            }
 	            VN.insert(VN.end(), VNForNextFrame.begin(), VNForNextFrame.end());
 	            VNForNextFrame.clear();
@@ -338,15 +338,15 @@ void evalLoadSc(int index)
 	        tempCN = new Node(timeStep + rep * nSubFrame);
 	        CN.push_back(tempCN);
 	        tempCN = CN[0];
-	        tempCN -> letGoOffNeighbours(tempCN);
+	        tempCN -> letGoOffNeighbours();
 	        CN.erase(CN.begin());
 	        delete tempCN;
 	        dec.decode(&CN, &VN, timeStep);
 
 	        // Counting packets: different method depending on the time_initial variable
 	        dec.countPacketsSC(&VN, timeStep, rep);
-	        sentPacketsCount = dec.getSentPackets();
-	        lostPacketsCount = dec.getLostPackets();
+	        sentPacketsCount = dec.getSentPacketsCount();
+	        lostPacketsCount = dec.getLostPacketsCount();
 
 	    }
 

@@ -30,9 +30,8 @@ public:
     void countPacketsNoBoundaryEffect(std::vector<Node *> *VN, unsigned long timeStep);
     void countPacketsFS(std::vector<Node *> *VN, unsigned long timeStep);
     void countPacketsSC(std::vector<Node *> *VN, unsigned long timeStep, int rep);
-
-    int getSentPackets();
-    int getLostPackets();
+    int getSentPacketsCount();
+    int getLostPacketsCount();
     std::vector<int> getDelays();
     void printFrame(std::vector<Node*>* CN);
 };
