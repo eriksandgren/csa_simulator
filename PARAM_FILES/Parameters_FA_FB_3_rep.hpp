@@ -26,9 +26,11 @@ int q = sizeof(Lambda) / sizeof(double);
 int numDecodingIterations = (int)1e7;
 int slotsBetweenDecoding = 1;
 bool saveDelays=false;  // Do you want to save the packet-delay pdf?
+bool saveAvgNumberOfIterations = true;
 string fileName = "results.txt";
 
 // Vector in which simulated PLR is saved
 vector<double> plr (gLength); // All elements are initially 0 this way
 // Matrix in which simulated delay pmf is saved
 vector<vector<int> > delays (0,vector<int>(0,0));
+vector<vector<int> > iterations (0,vector<int>(0,0));

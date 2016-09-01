@@ -30,10 +30,17 @@ void writeToOutputFile();
 
 int main () {
 	clock_t beginTime = clock();
+
 	if(saveDelays)
 	{
 		delays.resize(gLength, vector<int>(maximumDelay, 0));
 	}
+
+	if(saveAvgNumberOfIterations)
+	{
+		iterations.resize(gLength, vector<int>(maximumDelay, 0));
+	}
+
 	cout << "\n\n****************************************************************** \n";
 	switch(typeOfSimulation)
 	{
@@ -202,7 +209,7 @@ void evalLoadFa(int index)
 			VN.push_back(temp_VN);
 		}
 
-		dec.decode(&CN, &VN, timeStep);
+		dec.decode(&CN, &VN, timeStep, index, iterations, saveAvgNumberOfIterations);
 
 		// Counting packets
 		if(typeOfSimulation == FA_FB || typeOfSimulation == FA_UB )
@@ -271,7 +278,7 @@ void evalLoadFs(int index){
                 VNForNextFrame.push_back(tempVN);
             }
 
-            if(saveDelays){dec.decode(&CN, &VN, timeStep);}
+            if(saveDelays){dec.decode(&CN, &VN, timeStep, index, iterations, saveAvgNumberOfIterations);}
             if ( (timeStep % n) == 0 )
             {
                 if(!saveDelays){
@@ -382,7 +389,7 @@ void evalLoadSc(int index)
 	        tempCN -> letGoOffNeighbours();
 	        CN.erase(CN.begin());
 	        delete tempCN;
-	        dec.decode(&CN, &VN, timeStep);
+	        dec.decode(&CN, &VN, timeStep, index, iterations, saveAvgNumberOfIterations);
 
 	        // Counting packets: different method depending on the time_initial variable
 	        dec.countPacketsSC(&VN, timeStep, rep);
@@ -477,6 +484,22 @@ void writeToOutputFile(){
 			for (int ii=0; ii < maximumDelay; ii++)
 			{
 				outputFile<< delays[i][ii]<<" ";
+			}
+			outputFile <<"\\\\"<<endl;
+		}
+	}
+
+	outputFile << endl;
+	outputFile << endl;
+	outputFile << "Iterations PDF (one row per load, not normalized)" << endl;
+
+	if (saveAvgNumberOfIterations)
+	{
+		for (int i=0; i<gLength; i++)
+		{
+			for (int ii=0; ii < maximumDelay; ii++)
+			{
+				outputFile<< iterations[i][ii]<<" ";
 			}
 			outputFile <<"\\\\"<<endl;
 		}

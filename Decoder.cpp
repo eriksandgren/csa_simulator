@@ -24,7 +24,7 @@ Decoder::Decoder(int iter, int steps, int n, int n_rx, int maxDelay)
     firstDecoding_ = true;
 }
 
-void Decoder::decode(vector<Node*>* CN, vector<Node*>* VN, unsigned long int timeStep)
+void Decoder::decode(vector<Node*>* CN, vector<Node*>* VN, unsigned long int timeStep, int index, vector<vector<int> > &iterations, bool saveIterations)
 {
     int iteration = 0;
     // Checks if it is time to decode
@@ -71,6 +71,7 @@ void Decoder::decode(vector<Node*>* CN, vector<Node*>* VN, unsigned long int tim
 			VnsToResolve.clear();
         }
     }
+    	iterations[index][iteration]++;
     firstDecoding_ = iteration == numDecodingIterations_;
 }
 
