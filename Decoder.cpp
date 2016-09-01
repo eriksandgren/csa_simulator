@@ -71,7 +71,6 @@ void Decoder::decode(vector<Node*>* CN, vector<Node*>* VN, unsigned long int tim
 			VnsToResolve.clear();
         }
     }
-    cout << "Number of iter = " << iteration << endl;
     firstDecoding_ = iteration == numDecodingIterations_;
 }
 

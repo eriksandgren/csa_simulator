@@ -34,15 +34,56 @@ int main () {
 	{
 		delays.resize(gLength, vector<int>(maximumDelay, 0));
 	}
-	cout << "Frame Asynchronous Coded Slotted ALOHA simulation \n";
-	cout << "n = " << n << "\n";
-	cout << "d= " << d << "\n";
-	cout << "Lambda = " << Lambda << "\n";
+	cout << "\n\n****************************************************************** \n";
+	switch(typeOfSimulation)
+	{
+	case FA_FNB:
+		cout << "*   Frame Asynchronous Coded Slotted ALOHA (FA-FNB) simulation   *\n";
+		break;
+	case FA_FB:
+		cout << "*   Frame Asynchronous Coded Slotted ALOHA (FA-FB) simulation    *\n";
+		break;
+	case FA_UB:
+		cout << "*   Frame Asynchronous Coded Slotted ALOHA (FA-UB) simulation    *\n";
+		break;
+	case FA_UNB:
+		cout << "*   Frame Asynchronous Coded Slotted ALOHA (FA-UNB) simulation   *\n";
+		break;
+	case FS:
+		cout << "*   Frame Synchronous Coded Slotted ALOHA (FS) simulation        *\n";
+		break;
+	case SC:
+		cout << "*    Spatially Coupled Coded Slotted ALOHA (SC) simulation       *\n";
+		break;
+	}
+	cout << "****************************************************************** \n\n";
+	cout << "n      = " << n << "\n";
+
+	cout << "d      = [";
+	for (int i = 0; i < q; i++)
+	{
+		if (i != q-1)
+			cout << d[i] <<", ";
+		else
+			cout << d[i];
+	}
+	cout << "]\n";
+
+	cout << "Lambda = [";
+	for (int i = 0; i < q; i++)
+	{
+		if (i != q-1)
+			cout << Lambda[i] <<", ";
+		else
+			cout << Lambda[i];
+	}
+	cout << "]\n";
+
 	cout << "Packets to simulate = " << numberOfPacketsToSimulateMax << "\n";
-	cout << "Please find the results in " << fileName << "\n\n";
-	cout << "**************** Progress *************** " << "\n\n";
+	cout << "Please find the results in '" << fileName << "'\n\n";
+	cout << "**************************** Progress **************************** " << "\n\n";
 	cout << "Load \t \t    Sent \t\t Lost \t \t   PLR \n";
-	cout << "------------------------------------------------------- \n";
+	cout << "------------------------------------------------------------------ \n";
 	gIndex = gLength-1;
 
 	while(gIndex >= 0)

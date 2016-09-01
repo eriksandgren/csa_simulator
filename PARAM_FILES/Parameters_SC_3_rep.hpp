@@ -3,12 +3,12 @@ using namespace std;
 
 enum CsaType{FA_FNB, FA_FB, FA_UNB, FA_UB, FS, SC};
 
-CsaType typeOfSimulation = FS;
-int n = 200; // Frame length 'n'
+CsaType typeOfSimulation = SC;
+int n = 120; // Frame length 'n'
 int n_rx= 5*n; // Memory length 'n_rx'
 int maximumDelay=n_rx + n;  // For a non max-delay constrained simulation, put maximum_delay to larger than n_rx+n
 
-double g[] = {0.10, 0.20, 0.30,0.50,.40,0.60,0.70,0.80,0.90,1.0};
+double g[] = {0.10, 0.20, 0.30,.40,0.60,0.70,0.80,0.90,1.0};
 int gLength = sizeof(g) / sizeof(double);
 int gIndex;
 
@@ -18,8 +18,8 @@ int numberOfPacketLossesToSimulateMax=numberOfPacketsToSimulateMax/100; // How m
 
 // Defines the VN-degree distribution
 // Example : int d[] = {3, 8}; double Lambda = {0.86, 0.14};
-int d[] = {3, 8};
-double Lambda[] ={0.86, 0.14};
+int d[] = {3};
+double Lambda[] ={1};
 int q = sizeof(Lambda) / sizeof(double);
 
 // Defines the number of decoding iterations and how often to decode

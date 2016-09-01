@@ -3,7 +3,7 @@ using namespace std;
 
 enum CsaType{FA_FNB, FA_FB, FA_UNB, FA_UB, FS, SC};
 
-CsaType typeOfSimulation = FS;
+CsaType typeOfSimulation = FA_UB;
 int n = 200; // Frame length 'n'
 int n_rx= 5*n; // Memory length 'n_rx'
 int maximumDelay=n_rx + n;  // For a non max-delay constrained simulation, put maximum_delay to larger than n_rx+n
