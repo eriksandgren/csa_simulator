@@ -27,7 +27,7 @@ void evalLoadFs(int index);
 void evalLoadSc(int index);
 
 void writeToOutputFile();
-
+vector<double> computeAverageOfCollectedStats (vector<vector<int> > vec);
 int main () {
 	clock_t beginTime = clock();
 
@@ -488,6 +488,15 @@ void writeToOutputFile(){
 			outputFile <<"\\\\"<<endl;
 		}
 	}
+	outputFile << endl;
+	outputFile << "Avg delay for each simulated load:" << endl;
+
+	vector<double> avgDelay = computeAverageOfCollectedStats(delays);
+	for (int i=0; i < avgDelay.size(); i++)
+	{
+		outputFile<< avgDelay[i]<<" ";
+	}
+	outputFile << endl;
 
 	outputFile << endl;
 	outputFile << endl;
@@ -504,5 +513,35 @@ void writeToOutputFile(){
 			outputFile <<"\\\\"<<endl;
 		}
 	}
+
+	outputFile << endl;
+	outputFile << "Avg number of iterations per slot for each simulated load:" << endl;
+
+	vector<double> avgIteration = computeAverageOfCollectedStats(iterations);
+	for (int i=0; i < avgIteration.size(); i++)
+	{
+		outputFile<< avgIteration[i]<<" ";
+	}
+	outputFile << endl;
+
 	outputFile.close();
+}
+
+vector<double> computeAverageOfCollectedStats (vector<vector<int> > vec)
+{
+	vector<double> result;
+	for (int i = 0; i < vec.size() ; i++)
+	{
+	    int numEntries = 0;
+	    int total = 0;
+
+		for (int j = 0; j < vec[0].size(); j++)
+		{
+			total += vec[i][j] * j;
+			numEntries += vec[i][j];
+		}
+		double avg = double(total)/double(numEntries);
+		result.push_back(avg);
+	}
+	return result;
 }

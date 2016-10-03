@@ -8,11 +8,11 @@ int n = 200; // Frame length 'n'
 int n_rx= 5*n; // Memory length 'n_rx'
 int maximumDelay=n_rx + n;  // For a non max-delay constrained simulation, put maximum_delay to larger than n_rx+n
 
-double g[] = {0.10, 0.20, 0.30,0.50,.40,0.60,0.70,0.80,0.90,1.0};
+double g[] = {0.10, 0.20, 0.30,.40,0.50,0.60,0.70,0.80,0.90,1.0};
 int gLength = sizeof(g) / sizeof(double);
 int gIndex;
 
-int numberOfPacketsToSimulateMax =(int)1e7;  // How many sent packets to simulate (at most) for each system-load value
+int numberOfPacketsToSimulateMax =(int)1e6;  // How many sent packets to simulate (at most) for each system-load value
 int numberOfPacketLossesToSimulateMax=numberOfPacketsToSimulateMax/100; // How many packet losses to simulate (at most) for each system-load value
 
 
