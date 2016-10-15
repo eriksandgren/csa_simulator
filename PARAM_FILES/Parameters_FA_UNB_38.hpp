@@ -7,12 +7,13 @@ CsaType typeOfSimulation = FA_UNB;
 int n = 200; // Frame length 'n'
 int n_rx= 5*n; // Memory length 'n_rx'
 int maximumDelay=n_rx + n;  // For a non max-delay constrained simulation, put maximum_delay to larger than n_rx+n
+//double g[] = {0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95, 1.0};
+double g[] = {0.5};
 
-double g[] = {0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95, 1.0};
 int gLength = sizeof(g) / sizeof(double);
 int gIndex;
 
-int numberOfPacketsToSimulateMax =(int)1e6;  // How many sent packets to simulate (at most) for each system-load value
+int numberOfPacketsToSimulateMax =(int)1e8;  // How many sent packets to simulate (at most) for each system-load value
 int numberOfPacketLossesToSimulateMax=numberOfPacketsToSimulateMax; // How many packet losses to simulate (at most) for each system-load value
 
 
@@ -25,9 +26,9 @@ int q = sizeof(Lambda) / sizeof(double);
 // Defines the number of decoding iterations and how often to decode
 int numDecodingIterations = (int)1e7;
 int slotsBetweenDecoding = 1;
-bool saveDelays=false;  // Do you want to save the packet-delay pdf?
+bool saveDelays=true;  // Do you want to save the packet-delay pdf?
 bool saveAvgNumberOfIterations = true;
-string fileName = "FA_UNB_38.txt";
+string fileName = "FA_UNB_38_delay_05.txt";
 
 // Vector in which simulated PLR is saved
 vector<double> plr (gLength); // All elements are initially 0 this way

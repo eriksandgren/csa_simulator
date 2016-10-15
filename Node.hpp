@@ -15,6 +15,7 @@ public:
     Node();
     ~Node();
     Node(unsigned long int toa);
+    Node(unsigned long int toa, bool countable);
     void setDegree(int newDegree);
     void resolve(unsigned long int timeStep);
     void removeEdge(Node* adr);
@@ -30,9 +31,11 @@ public:
     bool getDecoded();
     void setDecoded();
     int getNumNeighbours();
-    
+    bool getCountable();
+    void setCountable();
 private:
     bool decoded_;
+    bool countable_;
     int delay_;
     unsigned long int timeOfArrival_;
     std::vector<Node*> neighbours_;

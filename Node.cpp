@@ -16,6 +16,7 @@ Node::Node() {
     decoded_ = false;
     timeOfArrival_ = 0;
     delay_ = -1;
+    countable_ = false;
 
 }
 
@@ -27,6 +28,19 @@ Node::Node(unsigned long int toa) {
     neighbours_.clear();
     decoded_ = false;
     delay_ = -1;
+    countable_ = false;
+}
+
+
+Node::Node(unsigned long int toa, bool countable) {
+    degree = 0;
+    timeOfArrival_ = toa;
+    vector<Node*> tmp;
+    neighbours_ = tmp;
+    neighbours_.clear();
+    decoded_ = false;
+    delay_ = -1;
+    countable_ = countable;
 }
 
 Node::~Node(){
@@ -110,4 +124,12 @@ void Node::letGoOffNeighbours()
 
 int Node::getNumNeighbours(){
     return (int) neighbours_.size();
+}
+
+bool Node::getCountable(){
+	return countable_;
+}
+
+void Node::setCountable(){
+	countable_ = true;
 }

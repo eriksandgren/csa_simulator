@@ -1,9 +1,7 @@
 //  main.cpp
 //  CSA_Simulator
-//
 //  Created by Erik Sandgren on 21/12/15.
 //  Copyright © 2015 Erik Sandgren. All rights reserved.
-
 #include <stdlib.h>
 #include <iostream>
 #include <ctime>
@@ -150,7 +148,9 @@ void evalLoadFa(int index)
 
 	// Running some steps without decoding in case the RX is not present at the start
 	if(typeOfSimulation == FA_FNB || typeOfSimulation == FA_UNB){
-		for (int i = 0; i < 2 * n_rx + n; i++) {
+		int timeZero = 2 * n_rx + n;
+
+		for (int i = 0; i < timeZero; i++) {
 			timeStep++;
 			// Create new CN and remove the oldest one.
 			tempCn = new Node(timeStep);
@@ -178,11 +178,27 @@ void evalLoadFa(int index)
 			}
 
 		}
+		// Find out which VNs are countable and which are not (of the ones joining before "i=0")
+		for (int i = 0; i < VN.size(); ++i)
+		{
+			temp_VN = VN[i];
+			int numNeighbours = temp_VN->getNumNeighbours();
+			for (int j = 0; j < numNeighbours; ++j)
+			{
+				tempCn = temp_VN->getNeighbour(j);
+				if(tempCn->getTimeOfArrival()  >= timeZero - n && (!temp_VN->getCountable()))
+				{
+					temp_VN->setCountable();
+				}
+			}
+		}
 	}
 
+	unsigned long int startTime = timeStep;
 	while(sentPacketsCount < numberOfPacketsToSimulateMax && lostPacketsCount < numberOfPacketLossesToSimulateMax)
 	{
 		timeStep++;
+		int memorySize = timeStep - startTime > n_rx ? n_rx : (int)(timeStep - startTime);
 		// Create new CN and remove the oldest one.
 		tempCn = new Node(timeStep);
 		CN.push_back(tempCn);
@@ -196,7 +212,7 @@ void evalLoadFa(int index)
 
 		for (int i = 0; i < samp; i++)
 		{
-			temp_VN = new Node(timeStep);
+			temp_VN = new Node(timeStep, true);
 			if(typeOfSimulation == FA_FNB || typeOfSimulation == FA_FB)
 			{
 				enc.distributeRepsFirstSlot(temp_VN, &CN);
@@ -209,7 +225,7 @@ void evalLoadFa(int index)
 			VN.push_back(temp_VN);
 		}
 
-		dec.decode(&CN, &VN, timeStep, index, iterations, saveAvgNumberOfIterations);
+		dec.decode(&CN, &VN, memorySize, timeStep, index, iterations, saveAvgNumberOfIterations);
 
 		// Counting packets
 		if(typeOfSimulation == FA_FB || typeOfSimulation == FA_UB )
@@ -278,7 +294,7 @@ void evalLoadFs(int index){
                 VNForNextFrame.push_back(tempVN);
             }
 
-            if(saveDelays){dec.decode(&CN, &VN, timeStep, index, iterations, saveAvgNumberOfIterations);}
+            if(saveDelays){dec.decode(&CN, &VN, n_rx, timeStep, index, iterations, saveAvgNumberOfIterations);}
             if ( (timeStep % n) == 0 )
             {
                 if(!saveDelays){
@@ -389,7 +405,7 @@ void evalLoadSc(int index)
 	        tempCN -> letGoOffNeighbours();
 	        CN.erase(CN.begin());
 	        delete tempCN;
-	        dec.decode(&CN, &VN, timeStep, index, iterations, saveAvgNumberOfIterations);
+	        dec.decode(&CN, &VN, n_rx, timeStep, index, iterations, saveAvgNumberOfIterations);
 
 	        // Counting packets: different method depending on the time_initial variable
 	        dec.countPacketsSC(&VN, timeStep, rep);

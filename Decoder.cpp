@@ -24,14 +24,16 @@ Decoder::Decoder(int iter, int steps, int n, int n_rx, int maxDelay)
     firstDecoding_ = true;
 }
 
-void Decoder::decode(vector<Node*>* CN, vector<Node*>* VN, unsigned long int timeStep, int index, vector<vector<int> > &iterations, bool saveIterations)
+void Decoder::decode(vector<Node*>* CN, vector<Node*>* VN, int currentMemorySize,
+					 unsigned long int timeStep, int index,
+					 vector<vector<int> > &iterations, bool saveIterations)
 {
     int iteration = 0;
     // Checks if it is time to decode
     if ( (timeStep % slotsBetweenDecoding_)==0 )
     {
 		vector<Node*> VnsToResolve;
-    	int numOfSlotsToCheck = firstDecoding_ ? n_rx_ : slotsBetweenDecoding_;
+    	int numOfSlotsToCheck = firstDecoding_ ? currentMemorySize : slotsBetweenDecoding_;
 
          for (int i = 0; i < numOfSlotsToCheck; i++)
          {
@@ -71,7 +73,7 @@ void Decoder::decode(vector<Node*>* CN, vector<Node*>* VN, unsigned long int tim
 			VnsToResolve.clear();
         }
     }
-    	iterations[index][iteration]++;
+    //iterations[index][iteration]++;
     firstDecoding_ = iteration == numDecodingIterations_;
 }
 
@@ -153,14 +155,13 @@ void Decoder::countPacketsNoBoundaryEffect(vector<Node *> *VN, unsigned long tim
             temp = VN->at(0);
             i++;
             // TODO: Send in a variable saying where we start counting packets instead of relying on this computation
-            if(VN->at(0)->getTimeOfArrival() < (unsigned long) 2 * n_rx_ + n_)
+            if(!VN->at(0)->getCountable())
             {
                 VN->erase(VN->begin());
                 delete temp;
             }
             else{
                 sentPacketsCount_++;
-                
                 if(temp -> getDecoded() && temp -> getDelay() <= maxDelay_)
                 {
                     delays_.at(temp->getDelay())++;

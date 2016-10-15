@@ -25,7 +25,7 @@ private:
 
 public:
     Decoder(int iter, int slots, int n, int n_rx, int maxDelay);
-    void decode(std::vector<Node*>* CN, std::vector<Node*>* VN, unsigned long int timeStep, int index, std::vector<std::vector<int> > &iterations, bool saveIterations);
+    void decode(std::vector<Node*>* CN, std::vector<Node*>* VN, int currentMemorySize, unsigned long int timeStep, int index, std::vector<std::vector<int> > &iterations, bool saveIterations);
     void decodeFrame(std::vector<Node*>* CN,std::vector<Node*>* VN, unsigned long int timeStep);
     void countPacketsBoundaryEffect(std::vector<Node *> *VN, unsigned long timeStep);
     void countPacketsNoBoundaryEffect(std::vector<Node *> *VN, unsigned long timeStep);
